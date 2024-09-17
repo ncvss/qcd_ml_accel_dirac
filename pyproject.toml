@@ -1,0 +1,11 @@
+[project]
+name = "qcd_ml_accel_dirac"
+authors = [
+    {name="Nico Voß"}
+]
+description = ""
+
+
+[build-system]
+requires = ["torch", "setuptools"]
+build-backend = "setuptools.build_meta"
