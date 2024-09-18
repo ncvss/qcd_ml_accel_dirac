@@ -1,11 +1,11 @@
-[project]
-name = "qcd_ml_accel_dirac"
-authors = [
-    {name="Nico Voß"}
-]
-description = ""
+#[project]
+#name = "qcd_ml_accel_dirac"
+#authors = [
+#    {name="Nico Voß"}
+#]
+#description = "higher performant functions for qcd_ml"
 
 
 [build-system]
-requires = ["torch", "setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["torch", "setuptools", "meson-python", "ninja"]
+build-backend = "mesonpy"

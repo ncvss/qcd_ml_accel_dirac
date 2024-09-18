@@ -4,6 +4,7 @@
 
 #include "wilson.hpp"
 
+namespace qcd_ml_accel_dirac_cpp{
 
 // Multiply a gauge field U2 with a gauge or vector field Uv.
 // Their positions on the grid in each dimension are shifted by
@@ -156,15 +157,16 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {}
 
 // Defines the operators
 TORCH_LIBRARY(cppoperations, m) {
-    m.def("shift_gaugemul_p(Tensor U2, Tensor Uv, int[] u2shifts, int[] uvshifts) -> Tensor");
+    m.def("shift_gaugemul(Tensor U2, Tensor Uv, int[] u2shifts, int[] uvshifts) -> Tensor");
     m.def("dirac_wilson_call(Tensor U, Tensor v, float mass) -> Tensor");
     m.def("dirac_wilson_clover_call(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
 }
 
 // Registers backend implementations
 TORCH_LIBRARY_IMPL(cppoperations, CPU, m) {
-    m.impl("shift_gaugemul_p", &shift_gaugemul_p_cpu);
+    m.impl("shift_gaugemul", &shift_gaugemul_p_cpu);
     m.impl("dirac_wilson_call", &dw_call_p);
     m.impl("dirac_wilson_clover_call", &dwc_call_p);
 }
 
+}
