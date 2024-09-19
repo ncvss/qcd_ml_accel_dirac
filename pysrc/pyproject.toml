@@ -1,0 +1,3 @@
+[build-system]
+requires = ["torch", "setuptools", "meson-python", "ninja"]
+build-backend = "mesonpy"

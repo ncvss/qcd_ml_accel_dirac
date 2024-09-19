@@ -1,11 +1,11 @@
-import torch
-from torch import Tensor
+# import torch
+# from torch import Tensor
 
 # diese Datei wird nur als Modul erkannt, wenn der Ordner qcd_ml_accel_dirac im obersten Verzeichnis ist
 
-def shift_gaugemul(a: Tensor, b: Tensor, c: list[int], d: list[int]) -> Tensor:
-    """Performs in an efficient fused kernel"""
-    return torch.ops.cppoperations.shift_gaugemul.default(a, b, c, d)
+# def shift_gaugemul(a: Tensor, b: Tensor, c: list[int], d: list[int]) -> Tensor:
+#     """Performs in an efficient fused kernel"""
+#     return torch.ops.cppoperations.shift_gaugemul.default(a, b, c, d)
 
 
 # # path buffer only for intermediate computations
