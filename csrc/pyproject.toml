@@ -1,3 +1,10 @@
+#[project]
+#name = "qcd_ml_accel_dirac_cpp"
+#authors = [
+#    {name="Nico Voß"}
+#]
+#description = "higher performant functions for qcd_ml in C++"
+
 [build-system]
 requires = ["torch", "meson-python", "ninja"]
 build-backend = "mesonpy"
