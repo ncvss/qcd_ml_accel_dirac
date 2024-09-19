@@ -2,6 +2,7 @@ import torch
 
 
 # path buffer only for intermediate computations
+# derived from the version in qcd_ml
 class _PathBufferTemp:
     def __init__(self, U, path):
         if isinstance(U, list):
@@ -31,13 +32,8 @@ class _PathBufferTemp:
                     U = torch.roll(U, -1, mu + 1)
 
 
-
+# Dirac Wilson operator, using C++ functions
 class dirac_wilson:
-    """
-    Dirac Wilson operator, using C++ functions.
-
-    See arXiv:2302.05419.
-    """
     def __init__(self, U, mass_parameter):
         self.U = U
         self.mass_parameter = mass_parameter
@@ -46,13 +42,8 @@ class dirac_wilson:
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
 
         
-
+# Dirac Wilson operator with clover term improvement, using C++
 class dirac_wilson_clover:
-    """
-    Dirac Wilson operator with clover term improvement, using C++.
-
-    See arXiv:2302.05419.
-    """
 
     def __init__(self, U, mass_parameter, csw):
         self.U = U
