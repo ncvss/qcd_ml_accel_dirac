@@ -3,7 +3,8 @@ name = "qcd_ml_accel_dirac"
 authors = [
     {name="Nico Voß"}
 ]
-description = ""
+description = "higher performant functions for qcd_ml"
+requires-python=">=3.4"
 
 
 [build-system]
