@@ -1,4 +1,5 @@
+.benchmarks/
+.pytest_cache/
 build/
 qcd_ml_accel_dirac.egg-info/
-.pytest_cache/
 test/__pycache__/
