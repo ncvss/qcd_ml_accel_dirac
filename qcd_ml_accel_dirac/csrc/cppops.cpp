@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "wilson.hpp"
+#include "dirac.hpp"
 
 namespace qcd_ml_accel_dirac{
 
