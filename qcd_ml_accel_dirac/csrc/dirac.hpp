@@ -57,7 +57,7 @@ static const c10::complex<double> sigf [6][4] = {{ iun,-iun, iun,-iun},
 
 
 
-at::Tensor dw_call_p (const at::Tensor& U, const at::Tensor& v, double mass){
+at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
 
     // check for correct size of gauge and vector field
     TORCH_CHECK(U.dim() == 7);
@@ -187,7 +187,7 @@ at::Tensor dw_call_p (const at::Tensor& U, const at::Tensor& v, double mass){
 }
 
 
-at::Tensor dwc_call_p (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
+at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
                      double mass, double csw){
 
     // check for correct size of gauge and vector field
