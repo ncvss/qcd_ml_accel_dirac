@@ -1,7 +1,6 @@
 import torch
 
 import qcd_ml_accel_dirac
-from qcd_ml_cpp.base.operations import SU3_group_compose, v_gauge_transform
 
 
 def test_shift_gaugemul_gauge(config_1500):
