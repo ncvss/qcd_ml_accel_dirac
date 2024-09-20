@@ -18,9 +18,11 @@ def get_extensions():
     extra_compile_args = {
         "cxx": [
             "-O3",
+            #"-fopenmp",
         ],
         "nvcc": [
             "-O3",
+            #"-fopenmp",
         ],
     }
 

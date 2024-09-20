@@ -10,5 +10,5 @@ version="0.0.1"
 
 
 [build-system]
-requires = ["torch", "setuptools"]
+requires = ["torch", "setuptools", "ninja"]
 build-backend = "setuptools.build_meta"
