@@ -81,3 +81,27 @@ def test_pytorch_timer_wilson_clover():
     dwc_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
 
     assert torch.allclose(dwc(v),dwc_cpp(v))
+
+
+def test_max_flops_with_matmul():
+    num_threads = torch.get_num_threads()
+    print("\n=======Test output=======")
+    print(f'Machine has {num_threads} threads')
+
+    # use matrix multiplication as a test for the theoretical performance
+
+    m1 = torch.randn([12*16,87],dtype=torch.cdouble)
+    m2 = torch.randn([87,8*8*8],dtype=torch.cdouble)
+
+    for tn in range(1,num_threads+1):
+        t0 = benchmark.Timer(
+            stmt='torch.matmul(m1,m2)',
+            globals={'m1': m1, 'm2': m2},
+            num_threads=tn
+        )
+        print(t0.timeit(5000))
+    
+    print("=========================\n")
+
+    assert True
+
