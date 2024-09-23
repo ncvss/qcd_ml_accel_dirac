@@ -105,3 +105,24 @@ def test_max_flops_with_matmul():
 
     assert True
 
+def test_max_flops_with_muladd():
+    num_threads = torch.get_num_threads()
+    print("\n=======Test output=======")
+
+    a = torch.randn([2076 * 8**3 * 16],dtype=torch.cdouble)
+    b = torch.randn([2076 * 8**3 * 16],dtype=torch.cdouble)
+
+    for tn in range(1,num_threads+1):
+        t0 = benchmark.Timer(
+            # braucht unendlich lang
+            # stmt='for i in range(2076 * 8**3 * 16): a[i] * b[i] + 1.2',
+            stmt='torch.mul(a,b)+1.2',
+            globals={'a': a, 'b': b},
+            num_threads=tn
+        )
+        print(t0.timeit(50))
+    
+    print("=========================\n")
+
+    assert True
+
