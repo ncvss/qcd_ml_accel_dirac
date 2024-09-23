@@ -7,7 +7,7 @@
 #endif
 #include <ATen/ParallelOpenMP.h>
 
-//#include <omp.h> 
+#include <omp.h>
 
 // file for the c++ pointer version of dirac wilson and dirac wilson clover
 
@@ -124,8 +124,7 @@ at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass)
     // gi is the gauge index of v and the second gauge index of U, which is summed over
 
     // parallelisation
-    at::parallel_for(0, v_size[0], 2, [&](int64_t start, int64_t end){
-//#pragma omp parallel for
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
     for (int64_t x = start; x < end; x++){
         for (int64_t y = 0; y < v_size[1]; y++){
             for (int64_t z = 0; z < v_size[2]; z++){
@@ -284,9 +283,8 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
     // gi is the gauge index of v and the second gauge index of U and F, which is summed over
 
     // parallelisation
-    //at::parallel_for(0, v_size[0], 2, [&](int64_t start, int64_t end){
-//#pragma omp parallel for
-    for (int64_t x = 0; x < v_size[0]; x++){
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
+    for (int64_t x = start; x < end; x++){
         for (int64_t y = 0; y < v_size[1]; y++){
             for (int64_t z = 0; z < v_size[2]; z++){
                 for (int64_t t = 0; t < v_size[3]; t++){
@@ -369,7 +367,7 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
             }
         }
     }
-    //});
+    });
 
     return result;
 }

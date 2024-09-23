@@ -99,7 +99,7 @@ def test_max_flops_with_matmul():
             globals={'m1': m1, 'm2': m2},
             num_threads=tn
         )
-        print(t0.timeit(5000))
+        print(t0.timeit(1000))
     
     print("=========================\n")
 
