@@ -1,5 +1,5 @@
 import torch
-from . import _C
+
 
 # path buffer only for intermediate computations
 # derived from the version in qcd_ml
