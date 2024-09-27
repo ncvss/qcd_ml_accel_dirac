@@ -46,7 +46,7 @@ setup(
     version="0.0.1",
     packages=find_packages(),
     ext_modules=get_extensions(),
-    install_requires=["torch"],
+    #install_requires=["torch"],
     cmdclass={"build_ext": BuildExtension},
 )
 
