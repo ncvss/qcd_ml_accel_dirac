@@ -1,32 +1,17 @@
 #include <torch/extension.h>
-
 #include <vector>
 
 #ifndef _OPENMP
 #define _OPENMP
 #endif
 #include <ATen/ParallelOpenMP.h>
-
 #include <omp.h>
+
+//#include "indexfunc.hpp"
 
 // file for the c++ pointer version of dirac wilson and dirac wilson clover
 
-//namespace qcd_ml_accel_dirac{
-
-// function to calculate the pointer address from coordinates
-// for tensors with 6 dimensions
-inline int64_t ptridx6 (int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f, int64_t* stridearr){
-    return a*stridearr[0] + b*stridearr[1] + c*stridearr[2]
-           + d*stridearr[3] + e*stridearr[4] + f*stridearr[5];
-}
-// for tensors with 7 dimensions
-inline int64_t ptridx7 (int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f, int64_t g, int64_t* stridearr){
-    return a*stridearr[0] + b*stridearr[1] + c*stridearr[2]
-           + d*stridearr[3] + e*stridearr[4] + f*stridearr[5]
-           + g*stridearr[6];
-}
-
-
+namespace qcd_ml_accel_dirac{
 
 // define imaginary unit (for brevity of following definitions)
 static const c10::complex<double> iun (0,1);
@@ -372,4 +357,4 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
     return result;
 }
 
-//}
+}
