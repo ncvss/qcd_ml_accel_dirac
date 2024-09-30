@@ -4,7 +4,7 @@
 
 #include "dirac.hpp"
 
-namespace qcd_ml_accel_dirac{
+//namespace qcd_ml_accel_dirac{
 
 // Multiply a gauge field U2 with a gauge or vector field Uv.
 // Their positions on the grid in each dimension are shifted by
@@ -169,4 +169,4 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("dirac_wilson_clover_call", &dwc_call_p_cpu);
 }
 
-}
+//}

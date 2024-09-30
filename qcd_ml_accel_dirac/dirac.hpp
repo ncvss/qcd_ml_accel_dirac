@@ -11,7 +11,7 @@
 
 // file for the c++ pointer version of dirac wilson and dirac wilson clover
 
-namespace qcd_ml_accel_dirac{
+//namespace qcd_ml_accel_dirac{
 
 // function to calculate the pointer address from coordinates
 // for tensors with 6 dimensions
@@ -372,4 +372,4 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
     return result;
 }
 
-}
+//}
