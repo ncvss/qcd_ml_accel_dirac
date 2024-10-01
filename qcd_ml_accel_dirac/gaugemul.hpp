@@ -1,6 +1,12 @@
 #include <torch/extension.h>
 #include <vector>
 
+#ifndef _OPENMP
+#define _OPENMP
+#endif
+#include <ATen/ParallelOpenMP.h>
+#include <omp.h>
+
 //#include "indexfunc.hpp"
 
 // file for the function shift_gaugemul
@@ -81,30 +87,27 @@ at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
     // if Uv is a vector, this is a gauge transform, which acts on the last dimension of Uv, and result is a vector
     if (uvsize[4] == 3){
         // simple matrix multiplication, where the elements are accessed with shifts
-        for (int64_t x = 0; x < uvsize[0]; x++){
+
+        // parallelisation
+        at::parallel_for(0, uvsize[0], 1, [&](int64_t start, int64_t end){
+        for (int64_t x = start; x < end; x++){
             for (int64_t y = 0; y < uvsize[1]; y++){
                 for (int64_t z = 0; z < uvsize[2]; z++){
                     for (int64_t t = 0; t < uvsize[3]; t++){
                         for (int64_t g = 0; g < 3; g++){
                             for (int64_t h = 0; h < 3; h++){
                                 for (int64_t i = 0; i < 3; i++){
-                                    res_ptr[  x *uvstride[0]
-                                            + y *uvstride[1]
-                                            + z *uvstride[2]
-                                            + t *uvstride[3]
-                                            + g *uvstride[4]
-                                            + h *uvstride[5]]+= U2_ptr[  ((x + u2shifts[0])%u2size[0]) *u2stride[0]
-                                                                       + ((y + u2shifts[1])%u2size[1]) *u2stride[1]
-                                                                       + ((z + u2shifts[2])%u2size[2]) *u2stride[2]
-                                                                       + ((t + u2shifts[3])%u2size[3]) *u2stride[3]
-                                                                       +   g                           *u2stride[4]
-                                                                       +   i                           *u2stride[5] ]
-                                                                *Uv_ptr[  ((x + uvshifts[0])%uvsize[0]) *uvstride[0]
-                                                                        + ((y + uvshifts[1])%uvsize[1]) *uvstride[1]
-                                                                        + ((z + uvshifts[2])%uvsize[2]) *uvstride[2]
-                                                                        + ((t + uvshifts[3])%uvsize[3]) *uvstride[3]
-                                                                        +   i                           *uvstride[4]
-                                                                        +   h                           *uvstride[5] ] ;
+                                    res_ptr[ptidx6(x,y,z,t,g,h,uvstride)]
+                                    +=  U2_ptr[ptridx6((x + u2shifts[0])%u2size[0],
+                                                       (y + u2shifts[1])%u2size[1],
+                                                       (z + u2shifts[2])%u2size[2],
+                                                       (t + u2shifts[3])%u2size[3],
+                                                        g, i, u2stride)]
+                                       *Uv_ptr[ptridx6((x + uvshifts[0])%uvsize[0],
+                                                       (y + uvshifts[1])%uvsize[1],
+                                                       (z + uvshifts[2])%uvsize[2],
+                                                       (t + uvshifts[3])%uvsize[3],
+                                                        i, h, uvstride)];
                                 }
                             }
                         }
@@ -112,32 +115,30 @@ at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
                 }
             }
         }
+        });
     } else {
         // matrix multiplication w.r.t. the last indices of both tensors
-        for (int64_t x = 0; x < uvsize[0]; x++){
+
+        // parallelisation
+        at::parallel_for(0, uvsize[0], 1, [&](int64_t start, int64_t end){
+        for (int64_t x = start; x < end; x++){
             for (int64_t y = 0; y < uvsize[1]; y++){
                 for (int64_t z = 0; z < uvsize[2]; z++){
                     for (int64_t t = 0; t < uvsize[3]; t++){
                         for (int64_t g = 0; g < 3; g++){
                             for (int64_t h = 0; h < uvsize[4]; h++){
                                 for (int64_t i = 0; i < 3; i++){
-                                    res_ptr[  x *uvstride[0]
-                                            + y *uvstride[1]
-                                            + z *uvstride[2]
-                                            + t *uvstride[3]
-                                            + h *uvstride[4]
-                                            + g *uvstride[5]]+= U2_ptr[  ((x + u2shifts[0])%u2size[0]) *u2stride[0]
-                                                                       + ((y + u2shifts[1])%u2size[1]) *u2stride[1]
-                                                                       + ((z + u2shifts[2])%u2size[2]) *u2stride[2]
-                                                                       + ((t + u2shifts[3])%u2size[3]) *u2stride[3]
-                                                                       +   g                           *u2stride[4]
-                                                                       +   i                           *u2stride[5] ]
-                                                                *Uv_ptr[  ((x + uvshifts[0])%uvsize[0]) *uvstride[0]
-                                                                        + ((y + uvshifts[1])%uvsize[1]) *uvstride[1]
-                                                                        + ((z + uvshifts[2])%uvsize[2]) *uvstride[2]
-                                                                        + ((t + uvshifts[3])%uvsize[3]) *uvstride[3]
-                                                                        +   h                           *uvstride[4]
-                                                                        +   i                           *uvstride[5] ] ;
+                                    res_ptr[ptidx6(x,y,z,t,g,h,uvstride)]
+                                    +=  U2_ptr[ptridx6((x + u2shifts[0])%u2size[0],
+                                                       (y + u2shifts[1])%u2size[1],
+                                                       (z + u2shifts[2])%u2size[2],
+                                                       (t + u2shifts[3])%u2size[3],
+                                                        g, i, u2stride)]
+                                       *Uv_ptr[ptridx6((x + uvshifts[0])%uvsize[0],
+                                                       (y + uvshifts[1])%uvsize[1],
+                                                       (z + uvshifts[2])%uvsize[2],
+                                                       (t + uvshifts[3])%uvsize[3],
+                                                        h, i, uvstride)];
                                 }
                             }
                         }
@@ -145,6 +146,7 @@ at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
                 }
             }
         }
+        });
     }
 
     return result;
