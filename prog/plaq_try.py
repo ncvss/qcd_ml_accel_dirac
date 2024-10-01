@@ -3,6 +3,8 @@ import torch
 # gauge field (one for each direction)
 U = torch.randn([4,4,4,4,8,3,3])
 
+# try the plaquette only with torch functions
+
 def plaquette(U,mu,nu):
     return torch.matmul(
         U[mu], torch.matmul(
@@ -14,8 +16,12 @@ def plaquette(U,mu,nu):
 
 def plaq_action(U,g):
     result = 0.0
-    vol = U.size(0)*U.size(1)*U.size(2)*U.size(3)
+    #vol = U.size(0)*U.size(1)*U.size(2)*U.size(3)
     for nu in range(4):
         for mu in range(nu):
             Umn = plaquette(U,mu,nu)
-            result += 2.0/g**2 * torch.real()
+            # trace( identity - Umn(x) ) = 3 - Umn(x)[0,0] - Umn(x)[1,1] - Umn(x)[2,2]
+            # we slice Umn to make the calculation at every point and then sum over all elements
+            result += torch.sum(torch.real(-Umn[...,0,0] - Umn[...,1,1] - Umn[...,2,2] + 3.0))
+    
+    return 2.0/g**2 * result
