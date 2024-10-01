@@ -32,9 +32,18 @@ c10::complex<double> plaq_action_cpu (const at::Tensor& U, double g){
         u_stride [sj] = u_stride[sj+1] * u_size[sj+1];
     }
 
-    const c10::complex<double>* U_ptr = U_contig.data_ptr<c10::complex<double>>();
+    //const c10::complex<double>* U_ptr = U_contig.data_ptr<c10::complex<double>>();
 
     // easier to first do this in python
+
+    // lookup tables for shifts in direction mu (basically an identity matrix)
+    std::vector<std::vector<int64_t>> shvec = {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+
+    for (int64_t nu = 0; nu < 4; nu++){
+        for (int64_t mu = 0; mu < nu; mu++){
+            at::Tensor Umn = shift_gaugemul_p(U[nu], at::adjoint(shift_gaugemul_p(U[nu], U[mu], {0,0,0,0}, shvec[nu])), shvec[mu], {0,0,0,0});
+        }
+    }
 
 }
 
