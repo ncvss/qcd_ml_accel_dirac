@@ -28,4 +28,6 @@ def plaq_action(U,g):
 # gauge field (one for each direction)
 U = torch.randn([4,4,4,4,8,3,3])
 
+print(U[...,0,0].size())
+
 print(plaq_action(U,2.0))
