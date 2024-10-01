@@ -1,7 +1,5 @@
 import torch
 
-# gauge field (one for each direction)
-U = torch.randn([4,4,4,4,8,3,3])
 
 # try the plaquette only with torch functions
 
@@ -25,3 +23,9 @@ def plaq_action(U,g):
             result += torch.sum(torch.real(-Umn[...,0,0] - Umn[...,1,1] - Umn[...,2,2] + 3.0))
     
     return 2.0/g**2 * result
+
+
+# gauge field (one for each direction)
+U = torch.randn([4,4,4,4,8,3,3])
+
+print(plaq_action(U,2.0))
