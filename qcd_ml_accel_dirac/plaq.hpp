@@ -62,7 +62,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
     double result = 0.0;
     
     // parallel loop over the possible tuples (mu,nu)
-    at::parallel_for(0, 6, 1, [&](int64_t start, int64_t end){
+    at::parallel_reduce(0, 6, 1, 0, [&](int64_t start, int64_t end){
     for (int64_t im = start; im < end; im++){
         //for (int64_t nu = 0; nu < 4; nu++){
         //for (int64_t mu = 0; mu < nu; mu++){
@@ -97,7 +97,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
         //}
         //}
     }
-    });
+    }, [](double r1, double r2){r1+r2;});
     
 
     return result *2/(g*g);
