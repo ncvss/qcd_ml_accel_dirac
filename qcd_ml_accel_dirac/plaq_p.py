@@ -12,9 +12,8 @@ def plaquette(U,mu,nu):
             )
         )
 
-def plaq_action(U,g):
+def plaq_action_py(U,g):
     result = 0.0
-    #vol = U.size(0)*U.size(1)*U.size(2)*U.size(3)
     for nu in range(4):
         for mu in range(nu):
             Umn = plaquette(U,mu,nu)
@@ -24,10 +23,3 @@ def plaq_action(U,g):
     
     return 2.0/g**2 * result
 
-
-# gauge field (one for each direction)
-U = torch.randn([4,4,4,4,8,3,3])
-
-print(U[...,0,0].size())
-
-print(plaq_action(U,2.0))
