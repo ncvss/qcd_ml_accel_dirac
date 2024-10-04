@@ -5,6 +5,7 @@
 #include "indexfunc.hpp"
 #include "gaugemul.hpp"
 #include "dirac.hpp"
+#include "plaq.hpp"
 
 namespace qcd_ml_accel_dirac{
 
@@ -22,6 +23,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("shift_gaugemul(Tensor U2, Tensor Uv, int[] u2shifts, int[] uvshifts) -> Tensor");
     m.def("dirac_wilson_call(Tensor U, Tensor v, float mass) -> Tensor");
     m.def("dirac_wilson_clover_call(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
+    m.def("plaquette_action(Tensor U, float g) -> float");
 }
 
 // Registers backend implementations
@@ -29,6 +31,7 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("shift_gaugemul", &shift_gaugemul_p_cpu);
     m.impl("dirac_wilson_call", &dw_call_p_cpu);
     m.impl("dirac_wilson_clover_call", &dwc_call_p_cpu);
+    m.impl("plaquette_action", &plaq_action_cpu);
 }
 
 }
