@@ -62,8 +62,10 @@ double plaq_action_cpu (const at::Tensor& U, double g){
     double result = 0.0;
     
     // parallel loop over the possible tuples (mu,nu)
-    at::parallel_reduce(0, 6, 1, 0, [&](int64_t start, int64_t end){
-    for (int64_t im = start; im < end; im++){
+    // not good to parallelize, as a matrix multiplication happens inside
+    // as per the docs, parallelization should not contain tensor operations
+    //at::parallel_reduce(0, 6, 1, 0, [&](int64_t start, int64_t end){
+    for (int64_t im = 0; im < 6; im++){
         //for (int64_t nu = 0; nu < 4; nu++){
         //for (int64_t mu = 0; mu < nu; mu++){
             // only compute the matrix product of the first 3 matrices
@@ -75,7 +77,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
             at::Tensor Umnp_contig = Umn_prel.contiguous();
             const c10::complex<double>* Umnp_ptr = Umnp_contig.data_ptr<c10::complex<double>>();
 
-            //at::parallel_for(0, u_size[1], 1, [&](int64_t start, int64_t end){
+            at::parallel_reduce(0, u_size[1], 1, [&](int64_t start, int64_t end){
             for (int64_t x = 0; x < u_size[1]; x++){
                 for (int64_t y = 0; y < u_size[2]; y++){
                     for (int64_t z = 0; z < u_size[3]; z++){
@@ -93,11 +95,11 @@ double plaq_action_cpu (const at::Tensor& U, double g){
                     }
                 }
             }
-            //});
+            }, [](double r1, double r2){return r1+r2;});
         //}
         //}
     }
-    }, [](double r1, double r2){return r1+r2;});
+    //}, [](double r1, double r2){return r1+r2;});
     
 
     return result *2/(g*g);
