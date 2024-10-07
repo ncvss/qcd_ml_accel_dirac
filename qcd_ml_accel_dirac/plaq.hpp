@@ -95,7 +95,8 @@ double plaq_action_cpu (const at::Tensor& U, double g){
                     }
                 }
             }
-            }, [&](double r1, double r2){return r1+r2;});
+            }, //[&](double r1, double r2){return r1+r2;}
+            std::plus<>{});
         //}
         //}
     }
