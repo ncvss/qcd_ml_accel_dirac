@@ -78,7 +78,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
             const c10::complex<double>* Umnp_ptr = Umnp_contig.data_ptr<c10::complex<double>>();
 
             at::parallel_reduce(0, u_size[1], 1, [&](int64_t start, int64_t end){
-            for (int64_t x = 0; x < u_size[1]; x++){
+            for (int64_t x = start; x < end; x++){
                 for (int64_t y = 0; y < u_size[2]; y++){
                     for (int64_t z = 0; z < u_size[3]; z++){
                         for (int64_t t = 0; t < u_size[4]; t++){
