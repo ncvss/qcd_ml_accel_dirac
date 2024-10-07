@@ -77,7 +77,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
             at::Tensor Umnp_contig = Umn_prel.contiguous();
             const c10::complex<double>* Umnp_ptr = Umnp_contig.data_ptr<c10::complex<double>>();
 
-            at::parallel_reduce(0, u_size[1], 1, 0.0, [&](int64_t start, int64_t end, double identify){
+            double munu_result = at::parallel_reduce(0, u_size[1], 1, 0.0, [&](int64_t start, int64_t end, double identify){
             double interm_result = identify;
             for (int64_t x = start; x < end; x++){
                 for (int64_t y = 0; y < u_size[2]; y++){
@@ -101,6 +101,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
             std::plus<double>{});
         //}
         //}
+        result += munu_result;
     }
     //}, [](double r1, double r2){return r1+r2;});
     
