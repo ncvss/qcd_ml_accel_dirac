@@ -1,5 +1,6 @@
 import torch
 import torch.utils.benchmark as benchmark
+import socket
 
 import qcd_ml_accel_dirac
 
@@ -32,6 +33,7 @@ def test_plaquette_action_bench():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
     print(f'Machine has {num_threads} threads')
+    print("running on host", socket.gethostname())
 
     size = [8,8,8,16]
 
