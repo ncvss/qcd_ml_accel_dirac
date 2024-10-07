@@ -77,7 +77,8 @@ double plaq_action_cpu (const at::Tensor& U, double g){
             at::Tensor Umnp_contig = Umn_prel.contiguous();
             const c10::complex<double>* Umnp_ptr = Umnp_contig.data_ptr<c10::complex<double>>();
 
-            at::parallel_reduce(0, u_size[1], 1, 0, [&](int64_t start, int64_t end, double identify){
+            at::parallel_reduce(0, u_size[1], 1, 0.0, [&](int64_t start, int64_t end, double identify){
+            double interm_result = identify;
             for (int64_t x = start; x < end; x++){
                 for (int64_t y = 0; y < u_size[2]; y++){
                     for (int64_t z = 0; z < u_size[3]; z++){
@@ -85,7 +86,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
                             // sum over 3 contributions to the trace
                             for (int64_t g = 0; g < 3; g++){
                                 // the contribution is the gth row of U_mu times the gth column of Umn_prel
-                                result += std::real( 1.0
+                                interm_result += std::real( 1.0
                                                     -U_ptr[ptridx7(mus[im],x,y,z,t,g,0,u_stride)] * Umnp_ptr[ptridx6(x,y,z,t,0,g,um_stride)]
                                                     -U_ptr[ptridx7(mus[im],x,y,z,t,g,1,u_stride)] * Umnp_ptr[ptridx6(x,y,z,t,1,g,um_stride)]
                                                     -U_ptr[ptridx7(mus[im],x,y,z,t,g,2,u_stride)] * Umnp_ptr[ptridx6(x,y,z,t,2,g,um_stride)]
@@ -95,8 +96,9 @@ double plaq_action_cpu (const at::Tensor& U, double g){
                     }
                 }
             }
+            return interm_result;
             }, //[&](double r1, double r2){return r1+r2;}
-            std::plus<>{});
+            std::plus<double>{});
         //}
         //}
     }
