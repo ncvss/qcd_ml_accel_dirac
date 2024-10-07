@@ -57,8 +57,8 @@ def test_plaquette_action_bench():
         )
 
         # note: only shown when enabling stdout in pytest via -s argument
-        print(t0.timeit(50))
-        print(t1.timeit(50))
+        print(t0.timeit(200))
+        print(t1.timeit(200))
 
     print("=========================\n")
 
