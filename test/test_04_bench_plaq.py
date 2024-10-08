@@ -32,8 +32,8 @@ def test_plaquette_action_bench():
 
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
-    print(f'Machine has {num_threads} threads')
     print("running on host", socket.gethostname())
+    print(f'Machine has {num_threads} threads')
 
     size = [8,8,8,16]
 

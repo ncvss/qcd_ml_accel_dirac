@@ -1,5 +1,6 @@
 import torch
 import torch.utils.benchmark as benchmark
+import socket
 
 import qcd_ml_accel_dirac
 import qcd_ml
@@ -7,6 +8,7 @@ import qcd_ml
 def test_pytorch_timer_wilson():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
+    print("running on host", socket.gethostname())
     print(f'Machine has {num_threads} threads')
 
     sizes = [[4,4,4,8],[8,8,8,16]]
@@ -32,8 +34,8 @@ def test_pytorch_timer_wilson():
         )
 
         # note: only shown when enabling stdout in pytest via -s argument
-        print(t0.timeit(50))
-        print(t1.timeit(50))
+        print(t0.timeit(20+30*tn))
+        print(t1.timeit(20+30*tn))
 
     print("=========================\n")
 
@@ -46,6 +48,7 @@ def test_pytorch_timer_wilson():
 def test_pytorch_timer_wilson_clover():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
+    print("running on host", socket.gethostname())
     print(f'Machine has {num_threads} threads')
 
     sizes = [[4,4,4,8],[8,8,8,16]]
@@ -72,8 +75,8 @@ def test_pytorch_timer_wilson_clover():
         )
 
         # note: only shown when enabling stdout in pytest via -s argument
-        print(t0.timeit(50))
-        print(t1.timeit(50))
+        print(t0.timeit(20+30*tn))
+        print(t1.timeit(20+30*tn))
 
     print("=========================\n")
 
@@ -122,7 +125,7 @@ def test_max_flops_with_muladd():
             globals={'a': a, 'b': b},
             num_threads=tn
         )
-        print(t0.timeit(50))
+        print(t0.timeit(30))
     
     print("=========================\n")
 
