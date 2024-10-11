@@ -36,14 +36,14 @@ for si in sizes:
         num_threads=tn
     )
 
-    t0 = benchmark.Timer(
+    t2 = benchmark.Timer(
         stmt='dwc_py(v)',
         setup='from qcd_ml.qcd.dirac import dirac_wilson_clover; dwc_py = dirac_wilson_clover(U,m,c)',
         globals={'U': U, 'v': v, 'm': mass, 'c': csw},
         num_threads=tn
     )
 
-    t1 = benchmark.Timer(
+    t3 = benchmark.Timer(
         stmt='dwc_cpp(v)',
         setup='from qcd_ml_accel_dirac import dirac_wilson_clover; dwc_cpp = dirac_wilson_clover(U,m,c)',
         globals={'U': U, 'v': v, 'm': mass, 'c': csw},
