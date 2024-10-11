@@ -11,9 +11,8 @@ print(f'Machine has {num_threads} threads')
 
 sizes = [[4,4,4,8],[8,4,4,8],[8,8,4,8],[8,8,8,8],[8,8,8,16],[16,8,8,16],[16,16,8,16],[16,16,16,16]]
 
-
 mass = -0.5
-
+csw = 1.0
 tn = 4
 
 for si in sizes:
@@ -24,8 +23,8 @@ for si in sizes:
     v = torch.randn(si+[4,3],dtype=torch.cdouble)
 
     t0 = benchmark.Timer(
-        stmt='dw(v)',
-        setup='from qcd_ml.qcd.dirac import dirac_wilson; dw = dirac_wilson(U,m)',
+        stmt='dw_py(v)',
+        setup='from qcd_ml.qcd.dirac import dirac_wilson; dw_py = dirac_wilson(U,m)',
         globals={'U': U, 'v': v, 'm': mass},
         num_threads=tn
     )
@@ -37,5 +36,21 @@ for si in sizes:
         num_threads=tn
     )
 
+    t0 = benchmark.Timer(
+        stmt='dwc_py(v)',
+        setup='from qcd_ml.qcd.dirac import dirac_wilson_clover; dwc_py = dirac_wilson_clover(U,m,c)',
+        globals={'U': U, 'v': v, 'm': mass, 'c': csw},
+        num_threads=tn
+    )
+
+    t1 = benchmark.Timer(
+        stmt='dwc_cpp(v)',
+        setup='from qcd_ml_accel_dirac import dirac_wilson_clover; dwc_cpp = dirac_wilson_clover(U,m,c)',
+        globals={'U': U, 'v': v, 'm': mass, 'c': csw},
+        num_threads=tn
+    )
+
     print(t0.timeit(30))
     print(t1.timeit(30))
+    print(t2.timeit(30))
+    print(t3.timeit(30))
