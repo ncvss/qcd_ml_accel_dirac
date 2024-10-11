@@ -5,7 +5,7 @@ import socket
 import qcd_ml_accel_dirac
 import qcd_ml
 
-def now_try_as_a_test():
+def test_different_sizes_for_wilson():
     num_threads = torch.get_num_threads()
     print("running on host", socket.gethostname())
     print(f'Machine has {num_threads} threads')
