@@ -3,3 +3,6 @@
 build/
 qcd_ml_accel_dirac.egg-info/
 test/__pycache__/
+*.sh
+*.out
+.venv/
