@@ -15,7 +15,7 @@ def test_different_sizes_for_wilson():
 
     mass = -0.5
     csw = 1.0
-    tn = 4
+    tn = 8
 
     for si in sizes:
 
