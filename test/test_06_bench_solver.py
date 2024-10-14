@@ -11,9 +11,6 @@ def test_solver_with_python_vs_cpp_wilson():
     print("running on host", socket.gethostname())
     print(f'Machine has {num_threads} threads')
 
-    #U = torch.randn([4,8,8,8,16,3,3], dtype=torch.cdouble)
-
-    #v = torch.randn([8,8,8,16,4,3], dtype=torch.cdouble)
 
     for tn in range(2,num_threads+1,2):
         t0 = benchmark.Timer(
@@ -22,7 +19,6 @@ def test_solver_with_python_vs_cpp_wilson():
                 + 'U = torch.randn([4,8,8,8,16,3,3], dtype=torch.cdouble); '
                 + 'v = torch.randn([8,8,8,16,4,3], dtype=torch.cdouble); '
                 + 'dwc_py = qcd_ml.qcd.dirac.dirac_wilson_clover(U, -0.61, 1)',
-            #globals={'U': U, 'v': v},
             num_threads=tn
         )
         t1 = benchmark.Timer(
@@ -31,7 +27,6 @@ def test_solver_with_python_vs_cpp_wilson():
                 + 'U = torch.randn([4,8,8,8,16,3,3], dtype=torch.cdouble); '
                 + 'v = torch.randn([8,8,8,16,4,3], dtype=torch.cdouble); '
                 + 'dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U, -0.61, 1)',
-            #globals={'U': U, 'v': v},
             num_threads=tn
         )
 
