@@ -10,11 +10,12 @@ def test_different_sizes_for_wilson():
     print("running on host", socket.gethostname())
     print(f'Machine has {num_threads} threads')
 
-    sizes = [[4,4,4,8],[8,4,4,8],[8,8,4,8],[8,8,8,8],[8,8,8,16],[16,8,8,16],[16,16,8,16],[16,16,16,16]]
+    sizes = [[4,4,4,8],[8,4,4,8],[8,8,4,8],[8,8,8,8],[8,8,8,16],[16,8,8,16],[16,16,8,16],[16,16,16,16],
+    [16,16,16,32]]
 
     mass = -0.5
     csw = 1.0
-    tn = 8
+    tn = 4
 
     for si in sizes:
 
