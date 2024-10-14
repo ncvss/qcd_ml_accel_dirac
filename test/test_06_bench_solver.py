@@ -15,7 +15,7 @@ def test_solver_with_python_vs_cpp_wilson():
 
     #v = torch.randn([8,8,8,16,4,3], dtype=torch.cdouble)
 
-    for tn in range(1,num_threads+1):
+    for tn in range(2,num_threads+1,2):
         t0 = benchmark.Timer(
             stmt='qcd_ml.util.solver.GMRES(dwc_py, v, v, eps=1e-4, inner_iter=25, maxiter=400)',
             setup='import torch; import qcd_ml; '
