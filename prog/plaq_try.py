@@ -1,5 +1,6 @@
 import torch
-
+import os
+import numpy as np
 
 # try the plaquette only with torch functions
 
@@ -25,9 +26,17 @@ def plaq_action(U,g):
     return 2.0/g**2 * result
 
 
-# gauge field (one for each direction)
-U = torch.randn([4,4,4,4,8,3,3])
+# tensor that looks like a gauge field (one for each direction)
+U = torch.randn([4,8,8,8,16,3,3])
+
+base_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+config_1500 = torch.tensor(np.load(os.path.join(base_dir_path,"test","assets","1500.config.npy")))
 
 print(U[...,0,0].size())
 
-print(plaq_action(U,2.0))
+pl = plaquette(config_1500,0,2)
+print(pl.shape)
+print(pl[5,2,7,8])
+print(pl[0,4,4,6])
+
+print(plaq_action(config_1500,2.0)/(8**3*16)/6)

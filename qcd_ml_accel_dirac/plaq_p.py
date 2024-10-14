@@ -21,5 +21,5 @@ def plaq_action_py(U,g):
             # we slice Umn to make the calculation at every point and then sum over all elements
             result += torch.sum(torch.real(-Umn[...,0,0] - Umn[...,1,1] - Umn[...,2,2] + 3.0))
     
-    return 2.0/g**2 * float(result)
+    return 2.0/g**2 * float(result) / (U.size(1)*U.size(2)*U.size(3)*U.size(4)*6)
 

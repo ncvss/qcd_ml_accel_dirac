@@ -105,8 +105,9 @@ double plaq_action_cpu (const at::Tensor& U, double g){
     }
     //}, [](double r1, double r2){return r1+r2;});
     
+    double vol = u_size[1]*u_size[2]*u_size[3]*u_size[4];
 
-    return result *2/(g*g);
+    return result *2/(g*g)/vol/6;
 }
 
 
