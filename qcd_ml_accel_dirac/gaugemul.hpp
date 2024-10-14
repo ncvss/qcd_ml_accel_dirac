@@ -7,7 +7,6 @@
 #include <ATen/ParallelOpenMP.h>
 #include <omp.h>
 
-//#include "indexfunc.hpp"
 
 // file for the function shift_gaugemul
 
