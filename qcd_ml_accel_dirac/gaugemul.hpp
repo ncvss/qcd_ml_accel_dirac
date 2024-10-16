@@ -1,21 +1,8 @@
 #include <torch/extension.h>
 #include <vector>
 
-// #ifndef _OPENMP
-// #define _OPENMP
-// #endif
-// #include <ATen/ParallelOpenMP.h>
-// #include <omp.h>
-
-// #include "indexfunc.hpp"
-
-// file for the function shift_gaugemul
 
 namespace qcd_ml_accel_dirac{
-
-// Multiply a gauge field U2 with a gauge or vector field Uv.
-// Their positions on the grid in each dimension are shifted by
-// the corresponding component of u2shifts and uvshifts respectively.
 
 /**
  * @brief multiply a gauge field with a gauge or vector field, with position shifts

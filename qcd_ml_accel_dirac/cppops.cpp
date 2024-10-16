@@ -1,17 +1,14 @@
 #include <torch/extension.h>
-
 #include <vector>
 
-//#include "indexfunc.hpp"
+// the functions are defined in the respective files
+// this file only contains the library implementation
+
 #include "gaugemul.hpp"
 #include "dirac.hpp"
 #include "plaq.hpp"
 
 namespace qcd_ml_accel_dirac{
-
-// the functions are defined in the respective files
-// this file only contains the library implementation
-
 
 // Registers _C as a Python extension module
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {}

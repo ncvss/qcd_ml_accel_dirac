@@ -1,13 +1,6 @@
 #include <torch/extension.h>
 #include <vector>
 
-// #ifndef _OPENMP
-// #define _OPENMP
-// #endif
-// #include <ATen/ParallelOpenMP.h>
-// #include <omp.h>
-
-// file for the plaquette action
 
 namespace qcd_ml_accel_dirac{
 
