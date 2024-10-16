@@ -11,6 +11,7 @@
 #include "gamma.hpp"
 
 // file for the domain wall fermion dirac operator
+// this operator is not tested!
 
 namespace qcd_ml_accel_dirac{
 
