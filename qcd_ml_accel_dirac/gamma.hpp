@@ -17,15 +17,15 @@ static const int64_t gamx [4][4] =
      {2, 3, 0, 1} };
 
 // gamf[mu][i] is the prefactor of spin component i of gammamu @ v
-// gamf = [[ i, i,-i,-i],
-//         [-1, 1, 1,-1],
-//         [ i,-i,-i, i],
-//         [ 1, 1, 1, 1] ]
 static const c10::complex<double> gamf [4][4] =
     {{c10::complex<double>(0, 1), c10::complex<double>(0, 1), c10::complex<double>(0,-1), c10::complex<double>(0,-1)},
      { -1,   1,   1,  -1},
      {c10::complex<double>(0, 1), c10::complex<double>(0,-1), c10::complex<double>(0,-1), c10::complex<double>(0, 1)},
      {  1,   1,   1,   1} };
+// gamf = [[ i, i,-i,-i],
+//         [-1, 1, 1,-1],
+//         [ i,-i,-i, i],
+//         [ 1, 1, 1, 1] ]
 
 
 // lookup tables for vmunu = sigmamunu @ v
@@ -43,12 +43,6 @@ static const int64_t sigx [6][4] =
      {0,1,2,3} };
 
 // sigf[munu][i] is the prefactor of spin component i of sigmamunu @ v
-// sigf = [[ i,-i, i,-i],
-//         [ 1,-1, 1,-1],
-//         [ i, i, i, i],
-//         [-i,-i, i, i],
-//         [ 1,-1,-1, 1],
-//         [-i, i, i,-i] ]
 static const c10::complex<double> sigf [6][4] =
     {{c10::complex<double>(0, 1), c10::complex<double>(0,-1), c10::complex<double>(0, 1), c10::complex<double>(0,-1)},
      {   1,  -1,   1,  -1},
@@ -56,5 +50,11 @@ static const c10::complex<double> sigf [6][4] =
      {c10::complex<double>(0,-1), c10::complex<double>(0,-1), c10::complex<double>(0, 1), c10::complex<double>(0, 1)},
      {   1,  -1,  -1,   1},
      {c10::complex<double>(0,-1), c10::complex<double>(0, 1), c10::complex<double>(0, 1), c10::complex<double>(0,-1)} };
+// sigf = [[ i,-i, i,-i],
+//         [ 1,-1, 1,-1],
+//         [ i, i, i, i],
+//         [-i,-i, i, i],
+//         [ 1,-1,-1, 1],
+//         [-i, i, i,-i] ]
 
 }
