@@ -1,11 +1,11 @@
 #include <torch/extension.h>
 #include <vector>
 
-#ifndef _OPENMP
-#define _OPENMP
-#endif
-#include <ATen/ParallelOpenMP.h>
-#include <omp.h>
+// #ifndef _OPENMP
+// #define _OPENMP
+// #endif
+// #include <ATen/ParallelOpenMP.h>
+// #include <omp.h>
 
 
 // file for the c++ pointer version of dirac wilson and dirac wilson clover

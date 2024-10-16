@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "indexfunc.hpp"
+//#include "indexfunc.hpp"
 #include "gaugemul.hpp"
 #include "dirac.hpp"
 #include "plaq.hpp"
