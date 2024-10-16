@@ -9,10 +9,8 @@
 
 namespace qcd_ml_accel_dirac{
 
-// the functions are defined in the respective header files
-// indexfunc.hpp only contains helper functions that calculate pointer indices from coordinates
-// the shifted gauge field multiplication function is in gaugemul.hpp
-// the dirac operator call functions are in dirac.hpp
+// the functions are defined in the respective files
+// this file only contains the library implementation
 
 
 // Registers _C as a Python extension module
