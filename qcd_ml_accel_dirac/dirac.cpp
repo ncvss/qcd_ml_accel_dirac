@@ -77,13 +77,13 @@ at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass)
         for (int64_t y = 0; y < v_size[1]; y++){
             for (int64_t z = 0; z < v_size[2]; z++){
                 for (int64_t t = 0; t < v_size[3]; t++){
-                    for (int64_t s = 0; s < v_size[4]; s++){
-                        for (int64_t g = 0; g < v_size[5]; g++){
+                    for (int64_t s = 0; s < 4; s++){
+                        for (int64_t g = 0; g < 3; g++){
                             // mass term
                             res_ptr[ptridx6(x,y,z,t,s,g,vstride)] = (4.0 + mass) * v_ptr[ptridx6(x,y,z,t,s,g,vstride)];
                             // hop terms written out for mu = 0, 1, 2, 3
                             // sum over gi corresponds to matrix product U_mu @ v
-                            for (int64_t gi = 0; gi < v_size[5]; gi++){
+                            for (int64_t gi = 0; gi < 3; gi++){
                                 res_ptr[ptridx6(x,y,z,t,s,g,vstride)]
                                 +=( // mu = 0 term
                                     std::conj(U_ptr[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,ustride)])
