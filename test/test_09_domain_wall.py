@@ -7,6 +7,9 @@ try:
     import gpt as g
     from qcd_ml.compat.gpt import lattice2ndarray, ndarray2lattice
 
+    # original gpt example
+    # https://github.com/lehner/gpt/blob/master/tests/qcd/domain_wall.py
+
 
     def test_domain_wall():
         rng = g.random("test")
