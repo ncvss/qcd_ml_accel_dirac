@@ -64,9 +64,9 @@ at::Tensor domainwall_call_cpu (const at::Tensor& U, const at::Tensor& v, double
 
     at::Tensor result = torch::empty(v_size, v.options());
 
-    const c10::complex<double>* U_ptr = U_contig.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* v_ptr = v_contig.data_ptr<c10::complex<double>>();
-    c10::complex<double>* res_ptr = result.data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U_ptr = U_contig.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* v_ptr = v_contig.const_data_ptr<c10::complex<double>>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
 
 
     // iterate over the whole field

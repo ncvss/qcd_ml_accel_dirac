@@ -71,9 +71,9 @@ at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
 
     at::Tensor result = torch::zeros(uvsize, Uv.options());
 
-    const c10::complex<double>* Uv_ptr = Uv_contig.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* U2_ptr = U2_contig.data_ptr<c10::complex<double>>();
-    c10::complex<double>* res_ptr = result.data_ptr<c10::complex<double>>();
+    const c10::complex<double>* Uv_ptr = Uv_contig.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U2_ptr = U2_contig.const_data_ptr<c10::complex<double>>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
 
 
     // different multiplication if Uv is a gauge or vector field

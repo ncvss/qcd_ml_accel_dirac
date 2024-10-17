@@ -49,7 +49,7 @@ double plaq_action_cpu (const at::Tensor& U, double g){
         um_stride [sj] = um_stride[sj+1] * um_size[sj+1];
     }
 
-    const c10::complex<double>* U_ptr = U_contig.data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U_ptr = U_contig.const_data_ptr<c10::complex<double>>();
 
     // refer to the python version for a more intuitive computation
 

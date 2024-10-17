@@ -60,9 +60,9 @@ at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass)
 
     at::Tensor result = torch::empty(v_size, v.options());
 
-    const c10::complex<double>* U_ptr = U_contig.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* v_ptr = v_contig.data_ptr<c10::complex<double>>();
-    c10::complex<double>* res_ptr = result.data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U_ptr = U_contig.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* v_ptr = v_contig.const_data_ptr<c10::complex<double>>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
 
 
     // iterate over the whole field
@@ -211,17 +211,17 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
 
     at::Tensor result = torch::empty(v_size, v.options());
 
-    const c10::complex<double>* U_ptr = U_contig.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* v_ptr = v_contig.data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U_ptr = U_contig.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* v_ptr = v_contig.const_data_ptr<c10::complex<double>>();
 
-    const c10::complex<double>* F10_ptr = F10.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* F20_ptr = F20.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* F21_ptr = F21.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* F30_ptr = F30.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* F31_ptr = F31.data_ptr<c10::complex<double>>();
-    const c10::complex<double>* F32_ptr = F32.data_ptr<c10::complex<double>>();
+    const c10::complex<double>* F10_ptr = F10.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* F20_ptr = F20.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* F21_ptr = F21.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* F30_ptr = F30.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* F31_ptr = F31.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* F32_ptr = F32.const_data_ptr<c10::complex<double>>();
 
-    c10::complex<double>* res_ptr = result.data_ptr<c10::complex<double>>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
 
 
     // iterate over the whole field
