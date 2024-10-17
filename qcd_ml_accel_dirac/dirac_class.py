@@ -34,12 +34,25 @@ class _PathBufferTemp:
 
 # Dirac Wilson operator, using C++ functions
 class dirac_wilson:
+    """
+    Dirac Wilson operator with gauge config U.
+    """
     def __init__(self, U, mass_parameter):
         self.U = U
         self.mass_parameter = mass_parameter
 
     def __call__(self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
+    
+
+# Dirac Wilson operator with rearranged call
+class dirac_wilson_r:
+    def __init__(self, U, mass_parameter):
+        self.U = U
+        self.mass_parameter = mass_parameter
+
+    def __call__(self, v):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_r(self.U, v, self.mass_parameter)
 
         
 # Dirac Wilson operator with clover term improvement, using C++
@@ -83,4 +96,47 @@ class dirac_wilson_clover:
         
     def __call__ (self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_clover_call(self.U, v, self.field_strength, self.mass_parameter, self.csw)
+
+
+# Dirac Wilson clover operator, rearranged
+class dirac_wilson_clover_r:
+
+    def __init__(self, U, mass_parameter, csw):
+        self.U = U
+        self.mass_parameter = mass_parameter
+        self.csw = csw
+
+        Hp = lambda mu, lst: lst + [(mu, 1)]
+        Hm = lambda mu, lst: lst + [(mu, -1)]
+        
+        plaquette_paths = [[[
+                Hm(mu, Hm(nu, Hp(mu, Hp(nu, []))))
+                , Hm(nu, Hp(mu, Hp(nu, Hm(mu, []))))
+                , Hp(nu, Hm(mu, Hm(nu, Hp(mu, []))))
+                , Hp(mu, Hp(nu, Hm(mu, Hm(nu, []))))
+                ] for nu in range(4)] for mu in range(4)]
+
+        plaquette_path_buffers = [[[_PathBufferTemp(U, pi) for pi in pnu] for pnu in pmu] for pmu in plaquette_paths]
+
+        # Every path from the clover terms has equal starting and ending points.
+        # This means the transport keeps the position of the vector field unchanged
+        # and only multiplies it with a matrix independent of the vector field.
+        # That matrix can thus be precomputed.
+        Qmunu = [[torch.zeros_like(U[0]) for nu in range(4)] for mu in range(4)]
+        for mu in range(4):
+            for nu in range(4):
+                # the terms for mu = nu cancel out in the final expression, so we do not compute them
+                if mu != nu:
+                    for ii in range(4):
+                        Qmunu[mu][nu] += plaquette_path_buffers[mu][nu][ii].accumulated_U
+        
+        # only a flat list, as it needs to be accessed by C++
+        self.field_strength = []
+        # the field strength is antisymmetric, so we only need to compute nu < mu
+        for mu in range(4):
+            for nu in range(mu):
+                self.field_strength.append((Qmunu[mu][nu] - Qmunu[nu][mu]) / 8)
+        
+    def __call__ (self, v):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_clover_call_r(self.U, v, self.field_strength, self.mass_parameter, self.csw)
 

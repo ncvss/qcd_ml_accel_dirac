@@ -45,6 +45,46 @@ def test_pytorch_timer_wilson():
     assert torch.allclose(dw(v),dw_cpp(v))
 
 
+def test_rearranged_wilson():
+    num_threads = torch.get_num_threads()
+    print("\n=======Test output=======")
+    print("running on host", socket.gethostname())
+    print(f'Machine has {num_threads} threads')
+
+    sizes = [[4,4,4,8],[8,8,8,16]]
+
+    U = torch.randn([4]+sizes[1]+[3,3],dtype=torch.cdouble)
+    v = torch.randn(sizes[1]+[4,3],dtype=torch.cdouble)
+    mass = -0.5
+
+    for tn in range(1,num_threads+1):
+
+        t0 = benchmark.Timer(
+            stmt='dw_rearr(v)',
+            setup='from qcd_ml_accel_dirac import dirac_wilson_r; dw_rearr = dirac_wilson_r(U,m)',
+            globals={'U': U, 'v': v, 'm': mass},
+            num_threads=tn
+        )
+
+        t1 = benchmark.Timer(
+            stmt='dw_old(v)',
+            setup='from qcd_ml_accel_dirac import dirac_wilson; dw_old = dirac_wilson(U,m)',
+            globals={'U': U, 'v': v, 'm': mass},
+            num_threads=tn
+        )
+
+        # note: only shown when enabling stdout in pytest via -s argument
+        print(t0.timeit(20+20*tn))
+        print(t1.timeit(20+20*tn))
+
+    print("=========================\n")
+
+    dw_rearr = qcd_ml_accel_dirac.dirac_wilson_r(U,mass)
+    dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
+
+    assert torch.allclose(dw_rearr(v),dw_cpp(v))
+
+
 def test_pytorch_timer_wilson_clover():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
@@ -80,8 +120,48 @@ def test_pytorch_timer_wilson_clover():
 
     print("=========================\n")
 
-    dwc = qcd_ml.qcd.dirac.dirac_wilson(U,mass)
-    dwc_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
+    dwc = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
+    dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
 
     assert torch.allclose(dwc(v),dwc_cpp(v))
 
+
+def test_rearranged_wilson_clover():
+    num_threads = torch.get_num_threads()
+    print("\n=======Test output=======")
+    print("running on host", socket.gethostname())
+    print(f'Machine has {num_threads} threads')
+
+    sizes = [[4,4,4,8],[8,8,8,16]]
+
+    U = torch.randn([4]+sizes[1]+[3,3],dtype=torch.cdouble)
+    v = torch.randn(sizes[1]+[4,3],dtype=torch.cdouble)
+    mass = -0.5
+    csw = 1.0
+
+    for tn in range(1,num_threads+1):
+
+        t0 = benchmark.Timer(
+            stmt='dwc_rearr(v)',
+            setup='from qcd_ml_accel_dirac import dirac_wilson_clover_r; dwc_rearr = dirac_wilson_clover_r(U,m,c)',
+            globals={'U': U, 'v': v, 'm': mass, 'c': csw},
+            num_threads=tn
+        )
+
+        t1 = benchmark.Timer(
+            stmt='dwc_old(v)',
+            setup='from qcd_ml_accel_dirac import dirac_wilson_clover; dwc_old = dirac_wilson_clover(U,m,c)',
+            globals={'U': U, 'v': v, 'm': mass, 'c': csw},
+            num_threads=tn
+        )
+
+        # note: only shown when enabling stdout in pytest via -s argument
+        print(t0.timeit(20+20*tn))
+        print(t1.timeit(20+20*tn))
+
+    print("=========================\n")
+
+    dwc = qcd_ml_accel_dirac.dirac_wilson_clover_r(U,mass,csw)
+    dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
+
+    assert torch.allclose(dwc(v),dwc_cpp(v))
