@@ -17,6 +17,8 @@ at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass)
 // also the dirac wilson, but rearranged
 at::Tensor dw_call_rearr_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 
+at::Tensor dw_call_rearr2_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
+
 /**
  * @brief apply the dirac wilson clover operator to a vector field
  * 
@@ -32,6 +34,9 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
 
 // dirac wilson clover rearranged
 at::Tensor dwc_call_rearr_cpu (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
+                     double mass, double csw);
+
+at::Tensor dwc_call_rearr2_cpu (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
                      double mass, double csw);
 
 /**

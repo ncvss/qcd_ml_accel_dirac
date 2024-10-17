@@ -73,16 +73,25 @@ def test_rearranged_wilson():
             num_threads=tn
         )
 
+        t2 = benchmark.Timer(
+            stmt='dw_re2(v)',
+            setup='from qcd_ml_accel_dirac import dirac_wilson_r2; dw_re2 = dirac_wilson_r2(U,m)',
+            globals={'U': U, 'v': v, 'm': mass},
+            num_threads=tn
+        )
+
         # note: only shown when enabling stdout in pytest via -s argument
         print(t0.timeit(20+20*tn))
         print(t1.timeit(20+20*tn))
+        print(t2.timeit(20+20*tn))
 
     print("=========================\n")
 
     dw_rearr = qcd_ml_accel_dirac.dirac_wilson_r(U,mass)
     dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
+    dw_re2 = qcd_ml_accel_dirac.dirac_wilson_r2(U,mass)
 
-    assert torch.allclose(dw_rearr(v),dw_cpp(v))
+    assert all([torch.allclose(dw_rearr(v),dw_cpp(v)), torch.allclose(dw_cpp(v),dw_re2(v))])
 
 
 def test_pytorch_timer_wilson_clover():
@@ -155,13 +164,22 @@ def test_rearranged_wilson_clover():
             num_threads=tn
         )
 
+        t2 = benchmark.Timer(
+            stmt='dwc_re2(v)',
+            setup='from qcd_ml_accel_dirac import dirac_wilson_clover_r2; dwc_re2 = dirac_wilson_clover_r2(U,m,c)',
+            globals={'U': U, 'v': v, 'm': mass, 'c': csw},
+            num_threads=tn
+        )
+
         # note: only shown when enabling stdout in pytest via -s argument
         print(t0.timeit(20+20*tn))
         print(t1.timeit(20+20*tn))
+        print(t2.timeit(20+20*tn))
 
     print("=========================\n")
 
     dwc = qcd_ml_accel_dirac.dirac_wilson_clover_r(U,mass,csw)
     dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
+    dwcr2 = qcd_ml_accel_dirac.dirac_wilson_clover_r2(U,mass,csw)
 
-    assert torch.allclose(dwc(v),dwc_cpp(v))
+    assert all([torch.allclose(dwc(v),dwc_cpp(v)), torch.allclose(dwc_cpp(v),dwcr2(v))])
