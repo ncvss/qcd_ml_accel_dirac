@@ -13,7 +13,7 @@
 namespace qcd_ml_accel_dirac{
 
 
-at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
+at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
 
     // check for correct size of gauge and vector field
     TORCH_CHECK(U.dim() == 7);

@@ -28,7 +28,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
 // Registers backend implementations
 TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("shift_gaugemul", &shift_gaugemul_p_cpu);
-    m.impl("dirac_wilson_call", &dw_call_cpu);
+    m.impl("dirac_wilson_call", &dw_call_p_cpu);
     m.impl("dirac_wilson_clover_call", &dwc_call_p_cpu);
     m.impl("plaquette_action", &plaq_action_cpu);
     m.impl("domainwall_dirac_call", &domainwall_call_cpu);
