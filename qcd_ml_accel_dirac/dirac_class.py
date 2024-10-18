@@ -45,23 +45,6 @@ class dirac_wilson:
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
     
 
-# Dirac Wilson operator with rearranged call
-class dirac_wilson_r:
-    def __init__(self, U, mass_parameter):
-        self.U = U
-        self.mass_parameter = mass_parameter
-
-    def __call__(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_r(self.U, v, self.mass_parameter)
-    
-class dirac_wilson_r2:
-    def __init__(self, U, mass_parameter):
-        self.U = U
-        self.mass_parameter = mass_parameter
-
-    def __call__(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_r2(self.U, v, self.mass_parameter)
-
         
 # Dirac Wilson operator with clover term improvement, using C++
 class dirac_wilson_clover:

@@ -12,12 +12,8 @@ namespace qcd_ml_accel_dirac{
  * @param mass the mass parameter
  * @return at::Tensor the vector field after the operator action
  */
-at::Tensor dw_call_p_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
+at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 
-// also the dirac wilson, but rearranged
-at::Tensor dw_call_rearr_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
-
-at::Tensor dw_call_rearr2_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 
 /**
  * @brief apply the dirac wilson clover operator to a vector field
