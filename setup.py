@@ -21,10 +21,10 @@ def get_extensions():
             "-fopenmp",
             #"-DUSE_CUDA=0"
         ],
-        # "nvcc": [
-        #     "-O3",
-        #     "-fopenmp",
-        # ],
+        "nvcc": [
+            "-O3",
+            "-fopenmp",
+        ],
     }
 
     this_dir = os.path.dirname(os.path.curdir)
@@ -47,7 +47,7 @@ setup(
     version="0.0.3",
     packages=find_packages(),
     ext_modules=get_extensions(),
-    install_requires=["torch"],
+    #install_requires=["torch"],
     cmdclass={"build_ext": BuildExtension},
 )
 
