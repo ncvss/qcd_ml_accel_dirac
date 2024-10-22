@@ -7,3 +7,8 @@ test/__pycache__/
 *.out
 .venv/
 .vscode/
+.venv2/
+.venv3/
+.venv4/
+.venv5/
+**venv/
