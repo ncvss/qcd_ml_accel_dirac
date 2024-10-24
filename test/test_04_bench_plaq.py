@@ -32,9 +32,17 @@ def test_plaquette_action_bench():
             num_threads=tn
         )
 
+        t2 = benchmark.Timer(
+            stmt='qcd_ml_accel_dirac.plaquette_action(U,g)',
+            setup='import qcd_ml_accel_dirac',
+            globals={'U': U, 'g': g},
+            num_threads=tn
+        )
+
         # note: only shown when enabling stdout in pytest via -s argument
         print(t0.timeit(200))
         print(t1.timeit(200))
+        print(t2.timeit(200))
 
     print("=========================\n")
 

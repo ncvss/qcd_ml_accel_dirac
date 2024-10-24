@@ -35,7 +35,7 @@ def test_pytorch_timer_wilson():
 
         # note: only shown when enabling stdout in pytest via -s argument
         print(t0.timeit(20+20*tn))
-        print(t1.timeit(20+20*tn))
+        print(t1.timeit(100+100*tn))
 
     print("=========================\n")
 
@@ -77,7 +77,7 @@ def test_pytorch_timer_wilson_clover():
 
         # note: only shown when enabling stdout in pytest via -s argument
         print(t0.timeit(20+20*tn))
-        print(t1.timeit(20+20*tn))
+        print(t1.timeit(100+100*tn))
 
     print("=========================\n")
 

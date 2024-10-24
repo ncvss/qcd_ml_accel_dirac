@@ -1,7 +1,6 @@
 import torch
 
 # plaquette action rename
-# however, calling this is extremely slow
 def plaquette_action(U,g):
     return torch.ops.qcd_ml_accel_dirac.plaquette_action(U,g)
 
