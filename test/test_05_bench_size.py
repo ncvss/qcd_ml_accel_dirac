@@ -15,7 +15,9 @@ def test_different_sizes_for_wilson():
 
     mass = -0.5
     csw = 1.0
-    tn = 8
+    tn = min(8,num_threads)
+
+    assert_equal = []
 
     for si in sizes:
 
@@ -56,5 +58,15 @@ def test_different_sizes_for_wilson():
         print(t1.timeit(30))
         print(t2.timeit(30))
         print(t3.timeit(30))
-    
-    assert True
+
+        # check if the computations give the same result
+        dw_py = qcd_ml.qcd.dirac.dirac_wilson(U,mass)
+        dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
+        dwc_py = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
+        dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
+
+        assert_equal.append(torch.allclose(dw_py(v),dw_cpp(v)))
+        assert_equal.append(torch.allclose(dwc_py(v),dwc_cpp(v)))
+
+
+    assert all(assert_equal)

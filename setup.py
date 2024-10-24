@@ -19,6 +19,7 @@ def get_extensions():
         "cxx": [
             "-O3",
             "-fopenmp",
+            #"-DUSE_CUDA=0"
         ],
         "nvcc": [
             "-O3",
@@ -43,7 +44,7 @@ def get_extensions():
 
 setup(
     name=library_name,
-    version="0.0.2",
+    version="0.0.3",
     packages=find_packages(),
     ext_modules=get_extensions(),
     #install_requires=["torch"],
