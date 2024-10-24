@@ -7,3 +7,8 @@ for a specific gauge configuration, mass and coupling. See arXiv:2302.05419 for 
 operators.
 
 The operator can be applied on a vector field by calling the class instance.
+
+To install:
+````
+pip install . --no-build-isolation
+````
