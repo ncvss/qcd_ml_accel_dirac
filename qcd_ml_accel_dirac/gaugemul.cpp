@@ -12,8 +12,8 @@
 
 namespace qcd_ml_accel_dirac{
 
-at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
-                                std::vector<int64_t> u2shifts, std::vector<int64_t> uvshifts){
+at::Tensor shift_gaugemul_cpu (const at::Tensor& U2, const at::Tensor& Uv,
+                               std::vector<int64_t> u2shifts, std::vector<int64_t> uvshifts){
 
     // check that both tensors have the correct shape for a gauge or vector field tensor
     TORCH_CHECK(Uv.dim() == 6);

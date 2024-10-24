@@ -20,21 +20,15 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("dirac_wilson_clover_call(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
     m.def("plaquette_action(Tensor U, float g) -> float");
     m.def("domainwall_dirac_call(Tensor U, Tensor v, float mass, float m5) -> Tensor");
-
-    m.def("dirac_wilson_clover_call_r(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
-    m.def("dirac_wilson_clover_call_r2(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
 }
 
 // Registers backend implementations
 TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
-    m.impl("shift_gaugemul", &shift_gaugemul_p_cpu);
-    m.impl("dirac_wilson_call", &dw_call_p_cpu);
-    m.impl("dirac_wilson_clover_call", &dwc_call_p_cpu);
+    m.impl("shift_gaugemul", &shift_gaugemul_cpu);
+    m.impl("dirac_wilson_call", &dw_call_cpu);
+    m.impl("dirac_wilson_clover_call", &dwc_call_cpu);
     m.impl("plaquette_action", &plaq_action_cpu);
     m.impl("domainwall_dirac_call", &domainwall_call_cpu);
-
-    m.impl("dirac_wilson_clover_call_r", &dwc_call_rearr_cpu);
-    m.impl("dirac_wilson_clover_call_r2", &dwc_call_rearr2_cpu);
 }
 
 }

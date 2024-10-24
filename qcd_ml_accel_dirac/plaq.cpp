@@ -72,9 +72,9 @@ double plaq_action_cpu (const at::Tensor& U, double g){
             // only compute the matrix product of the first 3 matrices
             // the fourth one is unneeded, as we only take the trace
             // also, we reverse the order to only call the adjoint once
-            at::Tensor Umn_prel = shift_gaugemul_p_cpu(U[nus[im]],
-                                                       at::adjoint(shift_gaugemul_p_cpu(U[nus[im]], U[mus[im]], {0,0,0,0}, shvec[nus[im]])),
-                                                       shvec[mus[im]], {0,0,0,0});
+            at::Tensor Umn_prel = shift_gaugemul_cpu(U[nus[im]],
+                                                     at::adjoint(shift_gaugemul_cpu(U[nus[im]], U[mus[im]], {0,0,0,0}, shvec[nus[im]])),
+                                                     shvec[mus[im]], {0,0,0,0});
             at::Tensor Umnp_contig = Umn_prel.contiguous();
             const c10::complex<double>* Umnp_ptr = Umnp_contig.data_ptr<c10::complex<double>>();
 

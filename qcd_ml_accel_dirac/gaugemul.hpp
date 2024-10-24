@@ -13,7 +13,7 @@ namespace qcd_ml_accel_dirac{
  * @param uvshifts the positional shifts of U2 in each lattice axis
  * @return at::Tensor the product
  */
-at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
-                                std::vector<int64_t> u2shifts, std::vector<int64_t> uvshifts);
+at::Tensor shift_gaugemul_cpu (const at::Tensor& U2, const at::Tensor& Uv,
+                               std::vector<int64_t> u2shifts, std::vector<int64_t> uvshifts);
 
 }
