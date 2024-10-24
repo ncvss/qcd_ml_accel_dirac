@@ -127,7 +127,7 @@ at::Tensor shift_gaugemul_p_cpu (const at::Tensor& U2, const at::Tensor& Uv,
                         for (int64_t g = 0; g < 3; g++){
                             for (int64_t h = 0; h < uvsize[4]; h++){
                                 for (int64_t i = 0; i < 3; i++){
-                                    res_ptr[ptridx6(x,y,z,t,g,h,uvstride)]
+                                    res_ptr[ptridx6(x,y,z,t,h,g,uvstride)]
                                     +=  U2_ptr[ptridx6((x + u2shifts[0])%u2size[0],
                                                        (y + u2shifts[1])%u2size[1],
                                                        (z + u2shifts[2])%u2size[2],
