@@ -95,9 +95,13 @@ def test_perf_counter_wilson():
     n_measurements = 1000
     n_warmup = 10
 
-    U = torch.randn([4,8,8,8,16,3,3],dtype=torch.cdouble)
-    v = torch.randn([8,8,8,16,4,3],dtype=torch.cdouble)
+    lat_dim = [8,8,8,16]
+    print("lattice dimensions:",lat_dim)
+
+    U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
+    v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
     mass = -0.5
+    print("mass parameter:",mass)
 
     dw_py = qcd_ml.qcd.dirac.dirac_wilson(U,mass)
     dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
@@ -135,12 +139,13 @@ def test_perf_counter_wilson():
 
 
     for lang_name,results_sorted in [["python",results_py_sorted], ["c++",results_cpp_sorted]]:
+        print("-----")
         print(lang_name)
-        print(f"mean (top 20%): [ns] {np.mean(results_sorted): .2f}")
-        print(f"std (top 20%): [ns] {np.std(results_sorted): .2f}")
-        print(f"best : [ns] {results_sorted[0]}")
-        print(f"mean bias : [ns] {np.mean(bias)}")
-        print(f"std bias : [ns] {np.mean(bias)}")
+        print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
+        print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
+        print(f"best : [us] {results_sorted[0]/1000}")
+        print(f"mean bias : [us] {np.mean(bias)/1000}")
+        print(f"std bias : [us] {np.mean(bias)/1000}")
 
         data_size = v.element_size() * v.nelement() + U.element_size() * U.nelement()
         data_size_MiB = data_size / 1024**2
@@ -155,7 +160,7 @@ def test_perf_counter_wilson():
 
         print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
         print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
-        print("-----")
+        
 
     assert torch.allclose(dwv_cpp,dwv_py)
 
@@ -165,10 +170,16 @@ def test_perf_counter_wilson_clover():
     n_measurements = 1000
     n_warmup = 10
 
-    U = torch.randn([4,8,8,8,16,3,3],dtype=torch.cdouble)
-    v = torch.randn([8,8,8,16,4,3],dtype=torch.cdouble)
+    lat_dim = [8,8,8,16]
+    print("lattice dimensions:",lat_dim)
+
+    U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
+    v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
     mass = -0.5
     csw = 1.0
+    print("mass parameter:",mass)
+    print("c_sw:",csw)
+    
 
     dwc_py = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
     dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
@@ -206,12 +217,13 @@ def test_perf_counter_wilson_clover():
 
 
     for lang_name,results_sorted in [["python",results_py_sorted], ["c++",results_cpp_sorted]]:
+        print("-----")
         print(lang_name)
-        print(f"mean (top 20%): [ns] {np.mean(results_sorted): .2f}")
-        print(f"std (top 20%): [ns] {np.std(results_sorted): .2f}")
-        print(f"best : [ns] {results_sorted[0]}")
-        print(f"mean bias : [ns] {np.mean(bias)}")
-        print(f"std bias : [ns] {np.mean(bias)}")
+        print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
+        print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
+        print(f"best : [us] {results_sorted[0]/1000}")
+        print(f"mean bias : [us] {np.mean(bias)/1000}")
+        print(f"std bias : [us] {np.mean(bias)/1000}")
 
         data_size = v.element_size() * v.nelement() + U.element_size() * U.nelement() * 10/4
         data_size_MiB = data_size / 1024**2
@@ -226,6 +238,6 @@ def test_perf_counter_wilson_clover():
 
         print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
         print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
-        print("-----")
+        
 
     assert torch.allclose(dwcv_cpp,dwcv_py)
