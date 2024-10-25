@@ -23,7 +23,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
 
     m.def("muladd_bench_nopar(Tensor a, Tensor b, Tensor c) -> Tensor");
     m.def("muladd_bench_par(Tensor a, Tensor b, Tensor c) -> Tensor");
-    m.def("muladd_bench_par_time(Tensor a, Tensor b, Tensor c) -> Tensor");
+    m.def("muladd_bench_nopar_time(Tensor a, Tensor b, Tensor c) -> Tensor");
     m.def("muladd_bench_par_time(Tensor a, Tensor b, Tensor c) -> Tensor");
 }
 

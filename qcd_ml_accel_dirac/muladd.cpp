@@ -98,8 +98,8 @@ at::Tensor muladd_bench_nopar_time(const at::Tensor& a, const at::Tensor& b, con
 
     auto stop = std::chrono::high_resolution_clock::now();
 
-    auto dur = std::chrono::duration_cast<std::chrono::microseconds>(stop-start);
-    result_ptr[0] = dur.count();
+    auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);
+    result_ptr[0] = c10::complex<double>(dur.count());
 
     return result;
 }
@@ -136,8 +136,8 @@ at::Tensor muladd_bench_par_time(const at::Tensor& a, const at::Tensor& b, const
 
     auto stop = std::chrono::high_resolution_clock::now();
 
-    auto dur = std::chrono::duration_cast<std::chrono::microseconds>(stop-start);
-    result_ptr[0] = dur.count();
+    auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);
+    result_ptr[0] = c10::complex<double>(dur.count());
 
     return result;
 }

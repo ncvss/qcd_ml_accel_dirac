@@ -196,10 +196,10 @@ def test_throughput_muladd_cpp_timer():
 
     for i in range(n_measurements):
         abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_par_time(a,b,c)
-        results_par[i] = abc[0]
+        results_par[i] = abc[0,0,0,0,0,0]
 
         abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_nopar_time(a,b,c)
-        results_nopar[i] = abc[0]
+        results_nopar[i] = abc[0,0,0,0,0,0]
 
 
     results_par_sorted = np.sort(results_par)[:(n_measurements // 5)]
