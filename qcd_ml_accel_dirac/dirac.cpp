@@ -67,10 +67,30 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
 
 
     // iterate over the whole field
+    // the space-time dimensions are split in 2 blocks in each direction
+    // bx,by,bz,bt are the indices of the space-time blocks
     // x,y,z,t are the space-time indices of U, v and result
     // s is the spin index of v and result
     // g is the gauge index of result and the first gauge index of U
     // gi is the gauge index of v and the second gauge index of U, which is summed over
+
+    for (int64_t bx = 0; bx < 2; bx++){
+        for (int64_t by = 0; by < 2; by++){
+            for (int64_t bz = 0; bz < 2; bz++){
+                for (int64_t bt = 0; bt < 2; bt++){
+                    at::parallel_for(0, v_size[0]/2, 1, [&](int64_t x, int64_t endx){
+                        at::parallel_for(0, v_size[1]/2, 1, [&](int64_t y, int64_t endy){
+                            for (int64_t z = 0; z < v_size[2]/2; z++){
+                                for (int64_t t = 0; t < v_size[3]/2; t++){
+
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+        }
+    }
 
     // parallelisation
     at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
