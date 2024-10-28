@@ -72,18 +72,18 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
     // g is the gauge index of result and the first gauge index of U
     // gi is the gauge index of v and the second gauge index of U, which is summed over
 
-    int64_t bls = 4;
+    int64_t bls = 2;
 
     // parallelisation
     //at::parallel_for(0, v_size[0], 1, [&](int64_t startx, int64_t endx){
     for (int64_t startx = 0; startx < v_size[0]; startx += bls){
+    for (int64_t starty = 0; starty < v_size[1]; starty += bls){
+    for (int64_t startz = 0; startz < v_size[2]; startz += bls){
+    for (int64_t startt = 0; startt < v_size[3]; startt += bls*2){
     for (int64_t x = startx; x < startx + bls; x++){
-        for (int64_t starty = 0; starty < v_size[1]; starty += bls){
         for (int64_t y = starty; y < starty + bls; y++){
-            for (int64_t startz = 0; startz < v_size[2]; startz += bls){
             for (int64_t z = startz; z < startz + bls; z++){
-                for (int64_t startt = 0; startt < v_size[3]; startt += bls){
-                for (int64_t t = startt; t < startt + bls; t++){
+                for (int64_t t = startt; t < startt + bls*2; t++){
 
                     // mass term
                     for (int64_t g = 0; g < 3; g++){
@@ -92,95 +92,145 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
                         }
                     }
 
-                    // mu = 0 term
+                    // mu = 0+ term
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
-                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
                                     std::conj(U_ptr[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,ustride)])
                                     * (
                                         -v_ptr[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,vstride)]
                                         -gamf[0][s] * v_ptr[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
-                                    )
-                                    + U_ptr[ptridx7(0,x,y,z,t,g,gi,ustride)]
-                                    * (
-                                        -v_ptr[ptridx6((x+1)%v_size[0],y,z,t,s,gi,vstride)]
-                                        +gamf[0][s] * v_ptr[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
-                                    )
-                                ) * 0.5;
+                                    ) * 0.5;
                             }
                         }
                     }
 
-                    // mu = 1 term
+                    // mu = 1+ term
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
-                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
                                     std::conj(U_ptr[ptridx7(1,x,(y-1+u_size[2])%u_size[2],z,t,gi,g,ustride)])
                                     * (
                                         -v_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,vstride)]
                                         -gamf[1][s] * v_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,vstride)]
-                                    )
-                                    + U_ptr[ptridx7(1,x,y,z,t,g,gi,ustride)]
-                                    * (
-                                        -v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,vstride)]
-                                        +gamf[1][s] * v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,vstride)]
-                                    )
-                                ) * 0.5;
+                                    ) * 0.5;
                             }
                         }
                     }
 
-                    // mu = 2 term
+                    // mu = 2+ term
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
-                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
                                     std::conj(U_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],t,gi,g,ustride)])
                                     * (
                                         -v_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,vstride)]
                                         -gamf[2][s] * v_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,vstride)]
-                                    )
-                                    + U_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
-                                    * (
-                                        -v_ptr[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,vstride)]
-                                        +gamf[2][s] * v_ptr[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
-                                    )
-                                ) * 0.5;
+                                    ) * 0.5;
                             }
                         }
                     }
 
-                    // mu = 3 term
+                    // mu = 3+ term
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
-                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
                                     std::conj(U_ptr[ptridx7(3,x,y,z,(t-1+u_size[4])%u_size[4],gi,g,ustride)])
                                     * (
                                         -v_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,vstride)]
                                         -gamf[3][s] * v_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,vstride)]
-                                    )
-                                    + U_ptr[ptridx7(3,x,y,z,t,g,gi,ustride)]
-                                    * (
-                                        -v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,vstride)]
-                                        +gamf[3][s] * v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,vstride)]
-                                    )
-                                ) * 0.5;
+                                    ) * 0.5;
                             }
                         }
                     }
        
                 }
-                }
-            }
             }
         }
-        }
+    }
+    }
+    }
     }
     }
     //});
+
+    for (int64_t startx = 0; startx < v_size[0]; startx += bls){
+    for (int64_t starty = 0; starty < v_size[1]; starty += bls){
+    for (int64_t startz = 0; startz < v_size[2]; startz += bls){
+    for (int64_t startt = 0; startt < v_size[3]; startt += bls*2){
+    for (int64_t x = startx; x < startx + bls; x++){
+        for (int64_t y = starty; y < starty + bls; y++){
+            for (int64_t z = startz; z < startz + bls; z++){
+                for (int64_t t = startt; t < startt + bls*2; t++){
+
+                    // mu = 0- term
+                    for (int64_t g = 0; g < 3; g++){
+                        for (int64_t gi = 0; gi < 3; gi++){
+                            for (int64_t s = 0; s < 4; s++){
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
+                                    U_ptr[ptridx7(0,x,y,z,t,g,gi,ustride)]
+                                    * (
+                                        -v_ptr[ptridx6((x+1)%v_size[0],y,z,t,s,gi,vstride)]
+                                        +gamf[0][s] * v_ptr[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
+                                    )* 0.5;
+                            }
+                        }
+                    }
+
+                    // mu = 1- term
+                    for (int64_t g = 0; g < 3; g++){
+                        for (int64_t gi = 0; gi < 3; gi++){
+                            for (int64_t s = 0; s < 4; s++){
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
+                                    U_ptr[ptridx7(1,x,y,z,t,g,gi,ustride)]
+                                    * (
+                                        -v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,vstride)]
+                                        +gamf[1][s] * v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,vstride)]
+                                    ) * 0.5;
+                            }
+                        }
+                    }
+
+                    // mu = 2- term
+                    for (int64_t g = 0; g < 3; g++){
+                        for (int64_t gi = 0; gi < 3; gi++){
+                            for (int64_t s = 0; s < 4; s++){
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
+                                    U_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
+                                    * (
+                                        -v_ptr[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,vstride)]
+                                        +gamf[2][s] * v_ptr[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
+                                    ) * 0.5;
+                            }
+                        }
+                    }
+
+                    // mu = 3- term
+                    for (int64_t g = 0; g < 3; g++){
+                        for (int64_t gi = 0; gi < 3; gi++){
+                            for (int64_t s = 0; s < 4; s++){
+                                res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=
+                                    U_ptr[ptridx7(3,x,y,z,t,g,gi,ustride)]
+                                    * (
+                                        -v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,vstride)]
+                                        +gamf[3][s] * v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,vstride)]
+                                    ) * 0.5;
+                            }
+                        }
+                    }
+       
+                }
+            }
+        }
+    }
+    }
+    }
+    }
+    }
 
     return result;
 }

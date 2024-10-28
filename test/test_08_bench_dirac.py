@@ -19,7 +19,7 @@ def test_pytorch_timer_wilson():
     v = torch.randn(sizes[1]+[4,3],dtype=torch.cdouble)
     mass = -0.5
 
-    for tn in range(1,num_threads+1):
+    for tn in range(1,2):
 
         t0 = benchmark.Timer(
             stmt='dw(v)',
