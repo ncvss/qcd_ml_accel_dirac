@@ -79,8 +79,10 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
         for (int64_t by = 0; by < v_size[1]/bls; by++){
             for (int64_t bz = 0; bz < v_size[2]/bls; bz++){
                 for (int64_t bt = 0; bt < v_size[3]/bls; bt++){
-                    at::parallel_for(0, bls, 1, [&](int64_t x, int64_t endx){
-                        at::parallel_for(0, bls, 1, [&](int64_t y, int64_t endy){
+                    at::parallel_for(0, bls, 1, [&](int64_t startx, int64_t endx){
+                    for (int64_t x = startx; x < endx; x++){
+                        at::parallel_for(0, bls, 1, [&](int64_t starty, int64_t endy){
+                        for (int64_t y = starty; y < endy; y++){
                             for (int64_t z = 0; z < bls; z++){
                                 for (int64_t t = 0; t < bls; t++){
                                     // mass term
@@ -95,7 +97,7 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
                                     for (int64_t g = 0; g < 3; g++){
                                         for (int64_t gi = 0; gi < 3; gi++){
                                             for (int64_t s = 0; s < 4; s++){
-                                                res_ptr[ptrblidx6(x,y,z,t,s,g,vstride)] += (
+                                                res_ptr[ptrblidx6(bx,by,bz,bt,bls,x,y,z,t,s,g,vstride)] += (
                                                     std::conj(U_ptr[ptrblidx7(0,bx,by,bz,bt,bls,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,ustride)])
                                                     * (
                                                         -v_ptr[ptrblidx6(bx,by,bz,bt,bls,(x-1+v_size[0])%v_size[0],y,z,t,s,gi,vstride)]
@@ -172,7 +174,9 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
                                     }
                                 }
                             }
+                        }
                         });
+                    }
                     });
                 }
             }
