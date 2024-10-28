@@ -109,67 +109,82 @@ def test_memory_throughput_with_muladd():
 def test_throughput_muladd_py_timer():
     print()
     print("running on host", socket.gethostname())
-    n_measurements = 20000
-    n_warmup = 400
 
-    a = torch.randn([8,8,8,16,4,4], dtype = torch.cdouble)
-    b = torch.randn([8,8,8,16,4,4], dtype = torch.cdouble)
-    c = torch.randn([8,8,8,16,4,4], dtype = torch.cdouble)
+    numels = [4**4*4*3 * 2**i for i in range(9)]
 
-    abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_par(a,b,c)
-    abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_nopar(a,b,c)
+    GiBs = {"parallel":[],"not parallel":[]}
+    data_MiB = []
 
-    for _ in range(n_warmup):
+    for si in numels:
+        n_measurements = 8000 * 8**3*16*4*3 //si
+        n_warmup = 200 * 8**3*16*4*3 //si
+
+        print("=====")
+        print("size:",si)
+        a = torch.randn([si], dtype = torch.cdouble)
+        b = torch.randn([si], dtype = torch.cdouble)
+        c = torch.randn([si], dtype = torch.cdouble)
+
         abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_par(a,b,c)
         abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_nopar(a,b,c)
 
+        for _ in range(n_warmup):
+            abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_par(a,b,c)
+            abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_nopar(a,b,c)
 
-    results_par = np.zeros(n_measurements)
-    results_nopar = np.zeros(n_measurements)
-    bias = np.zeros(n_measurements)
 
-    for i in range(n_measurements):
-        start = time.perf_counter_ns()
-        abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_par(a,b,c)
-        stop = time.perf_counter_ns()
-        results_par[i] = stop - start
+        results_par = np.zeros(n_measurements)
+        results_nopar = np.zeros(n_measurements)
+        bias = np.zeros(n_measurements)
 
-        start = time.perf_counter_ns()
-        abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_nopar(a,b,c)
-        stop = time.perf_counter_ns()
-        results_nopar[i] = stop - start
+        for i in range(n_measurements):
+            start = time.perf_counter_ns()
+            abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_par(a,b,c)
+            stop = time.perf_counter_ns()
+            results_par[i] = stop - start
 
-        start = time.perf_counter_ns()
-        stop = time.perf_counter_ns()
-        bias[i] = stop - start
+            start = time.perf_counter_ns()
+            abc = torch.ops.qcd_ml_accel_dirac.muladd_bench_nopar(a,b,c)
+            stop = time.perf_counter_ns()
+            results_nopar[i] = stop - start
 
-    results_par_sorted = np.sort(results_par)[:(n_measurements // 5)]
-    results_nopar_sorted = np.sort(results_nopar)[:(n_measurements // 5)]
+            start = time.perf_counter_ns()
+            stop = time.perf_counter_ns()
+            bias[i] = stop - start
 
-    for par,results_sorted in [["parallel",results_par_sorted],["not parallel",results_nopar_sorted]]:
-        print("-----")
-        print(par)
-        print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
-        print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
-        print(f"best : [us] {results_sorted[0]/1000}")
-        print(f"mean bias : [us] {np.mean(bias)/1000}")
-        print(f"std bias : [us] {np.mean(bias)/1000}")
+        results_par_sorted = np.sort(results_par)[:(n_measurements // 5)]
+        results_nopar_sorted = np.sort(results_nopar)[:(n_measurements // 5)]
 
-        data_size = 3 * a.element_size() * a.nelement()
-        data_size_MiB = data_size / 1024**2
+        for par,results_sorted in [["parallel",results_par_sorted],["not parallel",results_nopar_sorted]]:
+            print("-----")
+            print(par)
+            print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
+            print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
+            print(f"best : [us] {results_sorted[0]/1000}")
+            print(f"mean bias : [us] {np.mean(bias)/1000}")
+            print(f"std bias : [us] {np.mean(bias)/1000}")
 
-        print()
-        print(f"data : [MiB] {data_size_MiB: .3f}")
+            data_size = 4 * a.element_size() * a.nelement()
+            data_size_MiB = data_size / 1024**2
 
-        throughput = data_size / (np.mean(results_sorted) / 1000**3)
-        throughput_GiBs = throughput / 1024 ** 3
-        throughput_peak = data_size / (results_sorted[0] / 1000**3)
-        throughput_peak_GiBs = throughput_peak / 1024 ** 3
+            print()
+            print(f"data : [MiB] {data_size_MiB: .3f}")
 
-        print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
-        print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
-        
+            throughput = data_size / (np.mean(results_sorted) / 1000**3)
+            throughput_GiBs = throughput / 1024 ** 3
+            throughput_peak = data_size / (results_sorted[0] / 1000**3)
+            throughput_peak_GiBs = throughput_peak / 1024 ** 3
 
+            print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
+            print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
+            GiBs[par].append(throughput_GiBs)
+            if par == "parallel":
+                data_MiB.append(data_size_MiB)
+    
+    print("=======")
+    print(numels)
+    print(data_MiB)
+    print(GiBs)
     assert True
 
 
@@ -212,7 +227,7 @@ def test_throughput_muladd_cpp_timer():
         print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
         print(f"best : [us] {results_sorted[0]/1000}")
 
-        data_size = 3 * a.element_size() * a.nelement()
+        data_size = 4 * a.element_size() * a.nelement()
         data_size_MiB = data_size / 1024**2
 
         print()
