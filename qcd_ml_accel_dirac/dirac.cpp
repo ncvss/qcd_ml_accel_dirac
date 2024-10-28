@@ -72,12 +72,18 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
     // g is the gauge index of result and the first gauge index of U
     // gi is the gauge index of v and the second gauge index of U, which is summed over
 
+    int64_t bls = 4;
+
     // parallelisation
-    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
-    for (int64_t x = start; x < end; x++){
-        for (int64_t y = 0; y < v_size[1]; y++){
-            for (int64_t z = 0; z < v_size[2]; z++){
-                for (int64_t t = 0; t < v_size[3]; t++){
+    //at::parallel_for(0, v_size[0], 1, [&](int64_t startx, int64_t endx){
+    for (int64_t startx = 0; startx < v_size[0]; startx += bls){
+    for (int64_t x = startx; x < startx + bls; x++){
+        for (int64_t starty = 0; starty < v_size[1]; starty += bls){
+        for (int64_t y = starty; y < starty + bls; y++){
+            for (int64_t startz = 0; startz < v_size[2]; startz += bls){
+            for (int64_t z = startz; z < startz + bls; z++){
+                for (int64_t startt = 0; startt < v_size[3]; startt += bls){
+                for (int64_t t = startt; t < startt + bls; t++){
 
                     // mass term
                     for (int64_t g = 0; g < 3; g++){
@@ -165,13 +171,16 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
                             }
                         }
                     }
-
-                            
+       
+                }
                 }
             }
+            }
+        }
         }
     }
-    });
+    }
+    //});
 
     return result;
 }
