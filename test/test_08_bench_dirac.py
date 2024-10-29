@@ -147,7 +147,7 @@ def test_perf_counter_wilson():
         print(f"mean bias : [us] {np.mean(bias)/1000}")
         print(f"std bias : [us] {np.mean(bias)/1000}")
 
-        data_size = v.element_size() * v.nelement() + U.element_size() * U.nelement()
+        data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement()
         data_size_MiB = data_size / 1024**2
 
         print()
@@ -225,7 +225,7 @@ def test_perf_counter_wilson_clover():
         print(f"mean bias : [us] {np.mean(bias)/1000}")
         print(f"std bias : [us] {np.mean(bias)/1000}")
 
-        data_size = v.element_size() * v.nelement() + U.element_size() * U.nelement() * 10/4
+        data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement() * 10/4
         data_size_MiB = data_size / 1024**2
 
         print()
