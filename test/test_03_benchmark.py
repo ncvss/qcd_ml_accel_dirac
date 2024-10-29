@@ -110,14 +110,15 @@ def test_throughput_muladd_py_timer():
     print()
     print("running on host", socket.gethostname())
 
-    numels = [4**4*4*3 * 2**i for i in range(9)]
+    #numels = [4**4*4*3 * 2**i for i in range(9)]
+    numels = [2*4*8*8*4*2] + [4*4*8*8*4*2 * i for i in range(1,23)]
 
     GiBs = {"parallel":[],"not parallel":[]}
     data_MiB = []
 
     for si in numels:
-        n_measurements = 8000 * 8**3*16*4*3 //si
-        n_warmup = 200 * 8**3*16*4*3 //si
+        n_measurements = 5000 * 8**3*16*4*3 //si
+        n_warmup = 100 * 8**3*16*4*3 //si
 
         print("=====")
         print("size:",si)
