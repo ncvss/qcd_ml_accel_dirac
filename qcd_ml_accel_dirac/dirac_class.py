@@ -43,6 +43,31 @@ class dirac_wilson:
 
     def __call__(self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
+
+
+class dirac_wilson_b:
+    """
+    Dirac Wilson operator with gauge config U.
+    """
+    def __init__(self, U, mass_parameter, blocks):
+        self.U = U
+        self.mass_parameter = mass_parameter
+        self.blocks = blocks
+
+    def __call__(self, v):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_b(self.U, v, self.mass_parameter, self.blocks)
+    
+class dirac_wilson_b2:
+    """
+    Dirac Wilson operator with gauge config U.
+    """
+    def __init__(self, U, mass_parameter, blocks):
+        self.U = U
+        self.mass_parameter = mass_parameter
+        self.blocks = blocks
+
+    def __call__(self, v):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_b2(self.U, v, self.mass_parameter, self.blocks)
     
 
         

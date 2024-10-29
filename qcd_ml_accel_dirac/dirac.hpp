@@ -14,6 +14,10 @@ namespace qcd_ml_accel_dirac{
  */
 at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 
+at::Tensor dw_call_block_cpu (const at::Tensor& U, const at::Tensor& v, double mass, int64_t bls);
+
+at::Tensor dw_call_block2_cpu (const at::Tensor& U, const at::Tensor& v, double mass, int64_t bls);
+
 
 /**
  * @brief apply the dirac wilson clover operator to a vector field

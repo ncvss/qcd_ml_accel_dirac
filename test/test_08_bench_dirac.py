@@ -147,7 +147,7 @@ def test_perf_counter_wilson():
         print(f"mean bias : [us] {np.mean(bias)/1000}")
         print(f"std bias : [us] {np.mean(bias)/1000}")
 
-        data_size = v.element_size() * v.nelement() + U.element_size() * U.nelement()
+        data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement()
         data_size_MiB = data_size / 1024**2
 
         print()
@@ -225,7 +225,7 @@ def test_perf_counter_wilson_clover():
         print(f"mean bias : [us] {np.mean(bias)/1000}")
         print(f"std bias : [us] {np.mean(bias)/1000}")
 
-        data_size = v.element_size() * v.nelement() + U.element_size() * U.nelement() * 10/4
+        data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement() * 10/4
         data_size_MiB = data_size / 1024**2
 
         print()
@@ -241,3 +241,103 @@ def test_perf_counter_wilson_clover():
         
 
     assert torch.allclose(dwcv_cpp,dwcv_py)
+
+
+def test_wilson_blocked():
+    print()
+
+    lat_dims = [[8,8,8,8],[16,16,16,16],[32,32,32,32]]
+    bls = 8
+    tru = []
+
+    for lat_dim in lat_dims:
+        if lat_dim[0] > bls:
+            print("=======")
+            vol= 1
+            for d in lat_dim:
+                vol = vol * d
+            print("lattice dimensions:",lat_dim)
+
+            n_measurements = 2000 * (8**3*16) //vol
+            n_warmup = 5
+
+            U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
+            v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
+            mass = -0.5
+            
+            print("mass parameter:",mass)
+            print("block size:", bls)
+
+            dw_bl = qcd_ml_accel_dirac.dirac_wilson_b(U,mass,bls)
+            dw_li = qcd_ml_accel_dirac.dirac_wilson(U,mass)
+            dw_bl2 = qcd_ml_accel_dirac.dirac_wilson_b2(U,mass,bls)
+
+            dwv_li = dw_li(v)
+            dwv_bl = dw_bl(v)
+            dwv_bl2 = dw_bl2(v)
+
+            for _ in range(n_warmup):
+                dwv_li = dw_li(v)
+                dwv_bl = dw_bl(v)
+                dwv_bl2 = dw_bl2(v)
+
+            results_li = np.zeros(n_measurements)
+            results_bl = np.zeros(n_measurements)
+            results_bl2 = np.zeros(n_measurements)
+            bias = np.zeros(n_measurements)
+
+            for i in range(n_measurements):
+                start = time.perf_counter_ns()
+                dwv_li = dw_li(v)
+                stop = time.perf_counter_ns()
+                results_li[i] = stop - start
+
+                start = time.perf_counter_ns()
+                dwv_bl = dw_bl(v)
+                stop = time.perf_counter_ns()
+                results_bl[i] = stop - start
+
+                start = time.perf_counter_ns()
+                dwv_bl2 = dw_bl2(v)
+                stop = time.perf_counter_ns()
+                results_bl2[i] = stop - start
+
+                start = time.perf_counter_ns()
+                stop = time.perf_counter_ns()
+                bias[i] = stop - start
+
+
+            results_li_sorted = np.sort(results_li)[:(n_measurements // 5)]
+            results_bl_sorted = np.sort(results_bl)[:(n_measurements // 5)]
+            results_bl2_sorted = np.sort(results_bl2)[:(n_measurements // 5)]
+
+
+            for loop,results_sorted in [["linear",results_li_sorted],["blocked",results_bl2_sorted],["blocked and mu+/- split",results_bl_sorted]]:
+                print("-----")
+                print(loop)
+                print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
+                print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
+                print(f"best : [us] {results_sorted[0]/1000}")
+                print(f"mean bias : [us] {np.mean(bias)/1000}")
+                print(f"std bias : [us] {np.mean(bias)/1000}")
+
+                data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement()
+                data_size_MiB = data_size / 1024**2
+
+                print()
+                print(f"data : [MiB] {data_size_MiB: .3f}")
+
+                throughput = data_size / (np.mean(results_sorted) / 1000**3)
+                throughput_GiBs = throughput / 1024 ** 3
+                throughput_peak = data_size / (results_sorted[0] / 1000**3)
+                throughput_peak_GiBs = throughput_peak / 1024 ** 3
+
+                print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
+                print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
+            
+            tru.append(torch.allclose(dwv_li,dwv_bl))
+            tru.append(torch.allclose(dwv_li,dwv_bl2))
+        
+
+    assert all(tru)
+
