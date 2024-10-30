@@ -981,7 +981,7 @@ at::Tensor dwc_call_nopre_cpu (const at::Tensor& U, const at::Tensor& v, double 
 
                     // dirac wilson clover improvement
                     // here we directly compute the clover terms
-                    // we start with only the Q_{10} term to test
+                    // we start with only the H_-0 H_-1 H_+0 H_+1 term to test
                     // this is already much slower than with precomputation
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
