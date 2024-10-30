@@ -28,6 +28,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
 
     m.def("dirac_wilson_call_b(Tensor U, Tensor v, float mass, int bls) -> Tensor");
     m.def("dirac_wilson_call_b2(Tensor U, Tensor v, float mass, int bls) -> Tensor");
+    m.def("dirac_wilson_clover_call_nopre(Tensor U, Tensor v, float mass, float csw) -> Tensor");
 }
 
 // Registers backend implementations
@@ -44,6 +45,7 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
 
     m.impl("dirac_wilson_call_b", &dw_call_block_cpu);
     m.impl("dirac_wilson_call_b2", &dw_call_block2_cpu);
+    m.impl("dirac_wilson_clover_call_nopre", &dwc_call_nopre_cpu);
 }
 
 }

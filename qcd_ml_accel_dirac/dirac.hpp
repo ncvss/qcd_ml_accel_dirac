@@ -32,5 +32,7 @@ at::Tensor dw_call_block2_cpu (const at::Tensor& U, const at::Tensor& v, double 
 at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
                          double mass, double csw);
 
+at::Tensor dwc_call_nopre_cpu (const at::Tensor& U, const at::Tensor& v, double mass, double csw);
+
 
 }

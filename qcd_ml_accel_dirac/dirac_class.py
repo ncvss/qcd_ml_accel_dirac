@@ -113,3 +113,15 @@ class dirac_wilson_clover:
     def __call__ (self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_clover_call(self.U, v, self.field_strength, self.mass_parameter, self.csw)
 
+
+class dirac_wilson_clover_nopre:
+
+    def __init__(self, U, mass_parameter, csw):
+        self.U = U
+        self.mass_parameter = mass_parameter
+        self.csw = csw
+
+        
+    def __call__ (self, v):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_clover_call_nopre(self.U, v, self.mass_parameter, self.csw)
+
