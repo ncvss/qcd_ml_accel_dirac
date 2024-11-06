@@ -664,9 +664,10 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
     int64_t bls = 4;
 
     // parallelisation
-    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
-    for (int64_t x = start; x < end; x++){
-        for (int64_t y = 0; y < v_size[1]; y++){
+    at::parallel_for(0, v_size[0], 1, [&](int64_t startx, int64_t endx){
+    for (int64_t x = startx; x < endx; x++){
+        at::parallel_for(0, v_size[1], 1, [&](int64_t starty, int64_t endy){
+        for (int64_t y = starty; y < endy; y++){
             for (int64_t z = 0; z < v_size[2]; z++){
                 for (int64_t t = 0; t < v_size[3]; t++){
 
@@ -824,6 +825,7 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
                 }
             }
         }
+        });
     }
     });
 
