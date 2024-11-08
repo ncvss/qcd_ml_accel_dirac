@@ -16,8 +16,10 @@ namespace qcd_ml_accel_dirac{
 
 // test the dirac wilson call using only c++ instead of torch
 // There is no input, the fields are chosen randomly in the function
-// the output is the time needed
-double dw_call_c_test (
+// the output is the time taken
+
+
+double dw_call_c_test ( at::Tensor dummy
     //const double * U, const int * u_size, const double * v, const int * v_size, double mass
     ){
     int u_size[7] = {4,8,8,8,16,3,3};
@@ -264,7 +266,7 @@ double dw_call_c_test (
     auto stop = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);
 
-    return dur;
+    return double(dur.count());
 }
 
 

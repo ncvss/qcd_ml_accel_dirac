@@ -28,5 +28,8 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
                          double mass, double csw);
 
-
+// test the dirac wilson call using only c++ instead of torch
+// There is no input, the fields are chosen randomly in the function
+// the output is the time taken
+double dw_call_c_test(at::Tensor dummy);
 }

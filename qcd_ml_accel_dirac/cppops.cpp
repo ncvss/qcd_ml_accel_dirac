@@ -25,6 +25,8 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("muladd_bench_par(Tensor a, Tensor b, Tensor c) -> Tensor");
     m.def("muladd_bench_nopar_time(Tensor a, Tensor b, Tensor c) -> Tensor");
     m.def("muladd_bench_par_time(Tensor a, Tensor b, Tensor c) -> Tensor");
+
+    m.def("dw_call_c_test(Tensor dummy) -> float");
 }
 
 // Registers backend implementations
@@ -38,6 +40,8 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("muladd_bench_par", &muladd_bench_par);
     m.impl("muladd_bench_nopar_time", &muladd_bench_nopar_time);
     m.impl("muladd_bench_par_time", &muladd_bench_par_time);
+
+    m.impl("dw_call_c_test", &dw_call_c_test);
 }
 
 }
