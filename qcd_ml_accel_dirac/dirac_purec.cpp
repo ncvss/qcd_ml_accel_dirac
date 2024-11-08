@@ -1,6 +1,7 @@
 // we only use pure c++ in this!
 #include <vector>
 #include <random>
+#include <chrono>
 
 // #ifndef _OPENMP
 // #define _OPENMP
@@ -56,7 +57,8 @@ double dw_call_c_test (
 
     double * result = new double [vstride[0]*v_size[0]];
 
-
+    auto start = std::chrono::high_resolution_clock::now();
+    
     // iterate over the whole field
     // x,y,z,t are the space-time indices of U, v and result
     // s is the spin index of v and result
@@ -247,108 +249,9 @@ double dw_call_c_test (
                                         *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,0,vstride)]
                                     )
                                 ) *0.5;
-                                // += (
-                                //     U[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,0,ustride)]
-                                //     * (
-                                //         -v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,0,vstride)]
-                                //         +gamf[0][s] * v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
-                                //     )
-                                //     + U[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,1,ustride)]
-                                //     * (
-                                //         -v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,1,vstride)]
-                                //         -gamf[0][s] * v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
-                                //     )
-                                // ) * 0.5;
-                                // result[ptridx6(x,y,z,t,s,g,1,vstride)]
-                                // += (
-                                //     + U[ptridx7(0,x,y,z,t,g,gi,0,ustride)]
-                                //     * (
-                                //         -v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,0,vstride)]
-                                //         +gamf[0][s] * v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
-                                //     )
-                                //     - U[ptridx7(0,x,y,z,t,g,gi,1,ustride)]
-                                //     * (
-                                //         -v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,1,vstride)]
-                                //         +gamf[0][s] * v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
-                                //     )
-                                // ) * 0.5;
-
-                                // res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
-                                //     std::conj(U_ptr[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,ustride)])
-                                //     * (
-                                //         -v_ptr[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,vstride)]
-                                //         -gamf[0][s] * v_ptr[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
-                                //     )
-                                //     + U_ptr[ptridx7(0,x,y,z,t,g,gi,ustride)]
-                                //     * (
-                                //         -v_ptr[ptridx6((x+1)%v_size[0],y,z,t,s,gi,vstride)]
-                                //         +gamf[0][s] * v_ptr[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
-                                //     )
-                                // ) * 0.5;
                             }
                         }
                     }
-
-                    // // mu = 1 term
-                    // for (int g = 0; g < 3; g++){
-                    //     for (int gi = 0; gi < 3; gi++){
-                    //         for (int s = 0; s < 4; s++){
-                    //             res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
-                    //                 std::conj(U_ptr[ptridx7(1,x,(y-1+u_size[2])%u_size[2],z,t,gi,g,ustride)])
-                    //                 * (
-                    //                     -v_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,vstride)]
-                    //                     -gamf[1][s] * v_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,vstride)]
-                    //                 )
-                    //                 + U_ptr[ptridx7(1,x,y,z,t,g,gi,ustride)]
-                    //                 * (
-                    //                     -v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,vstride)]
-                    //                     +gamf[1][s] * v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,vstride)]
-                    //                 )
-                    //             ) * 0.5;
-                    //         }
-                    //     }
-                    // }
-
-                    // // mu = 2 term
-                    // for (int g = 0; g < 3; g++){
-                    //     for (int gi = 0; gi < 3; gi++){
-                    //         for (int s = 0; s < 4; s++){
-                    //             res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
-                    //                 std::conj(U_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],t,gi,g,ustride)])
-                    //                 * (
-                    //                     -v_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,vstride)]
-                    //                     -gamf[2][s] * v_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,vstride)]
-                    //                 )
-                    //                 + U_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
-                    //                 * (
-                    //                     -v_ptr[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,vstride)]
-                    //                     +gamf[2][s] * v_ptr[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
-                    //                 )
-                    //             ) * 0.5;
-                    //         }
-                    //     }
-                    // }
-
-                    // // mu = 3 term
-                    // for (int g = 0; g < 3; g++){
-                    //     for (int gi = 0; gi < 3; gi++){
-                    //         for (int s = 0; s < 4; s++){
-                    //             res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
-                    //                 std::conj(U_ptr[ptridx7(3,x,y,z,(t-1+u_size[4])%u_size[4],gi,g,ustride)])
-                    //                 * (
-                    //                     -v_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,vstride)]
-                    //                     -gamf[3][s] * v_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,vstride)]
-                    //                 )
-                    //                 + U_ptr[ptridx7(3,x,y,z,t,g,gi,ustride)]
-                    //                 * (
-                    //                     -v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,vstride)]
-                    //                     +gamf[3][s] * v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,vstride)]
-                    //                 )
-                    //             ) * 0.5;
-                    //         }
-                    //     }
-                    // }
-
                             
                 }
             }
@@ -357,6 +260,11 @@ double dw_call_c_test (
     // });
 
     //return result;
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);
+
+    return dur;
 }
 
 
