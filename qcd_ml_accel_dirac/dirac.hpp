@@ -32,4 +32,7 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
 // There is no input, the fields are chosen randomly in the function
 // the output is the time taken
 double dw_call_c_test(at::Tensor dummy);
+
+at::Tensor dw_call_c_correct (const at::Tensor& Ufl, const at::Tensor& vfl,
+                              std::vector<int64_t> u_size, std::vector<int64_t> v_size, double mass);
 }

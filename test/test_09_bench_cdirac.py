@@ -4,8 +4,24 @@ import time
 
 import qcd_ml_accel_dirac
 
+def test_pure_c_correctness():
+    lat_dim = [8,8,8,16]
+    U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
+    v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
+    Uflat = torch.flatten(torch.stack((torch.real(U),torch.imag(U)),dim=-1))
+    vflat = torch.flatten(torch.stack((torch.real(v),torch.imag(v)),dim=-1))
+    mass = -0.5
 
-def test_wilson_pure_c():
+    dw = qcd_ml_accel_dirac.dirac_wilson(U,mass)
+    dwv = dw(v)
+    dwvflat = torch.flatten(torch.stack((torch.real(dwv),torch.imag(dwv)),dim=-1))
+
+    dwpure = torch.ops.qcd_ml_accel_dirac.dw_call_c_correct(Uflat,vflat,[4]+lat_dim+[3,3],lat_dim+[4,3],mass)
+
+    assert torch.allclose(dwpure,dwvflat)
+
+
+def test_time_wilson_pure_c():
     print()
     n_measurements = 1000
     n_warmup = 10
