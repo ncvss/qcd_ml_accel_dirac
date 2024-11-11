@@ -35,4 +35,6 @@ double dw_call_c_test(at::Tensor dummy);
 
 at::Tensor dw_call_c_correct (const at::Tensor& Ufl, const at::Tensor& vfl,
                               std::vector<int64_t> u_size, std::vector<int64_t> v_size, double mass);
+
+double dw_call_c_speed(at::Tensor dummy);
 }

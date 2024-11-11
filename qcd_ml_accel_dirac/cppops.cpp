@@ -28,6 +28,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
 
     m.def("dw_call_c_test(Tensor dummy) -> float");
     m.def("dw_call_c_correct(Tensor U, Tensor v, int[] u_size, int[] v_size, float mass) -> Tensor");
+    m.def("dw_call_c_speed(Tensor dummy) -> float");
 }
 
 // Registers backend implementations
@@ -44,6 +45,7 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
 
     m.impl("dw_call_c_test", &dw_call_c_test);
     m.impl("dw_call_c_correct", &dw_call_c_correct);
+    m.impl("dw_call_c_speed", &dw_call_c_speed);
 }
 
 }
