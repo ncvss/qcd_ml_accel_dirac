@@ -245,4 +245,80 @@ def test_throughput_muladd_cpp_timer():
 
     assert True
 
+def test_throughput_mul_realvcomplex():
+    print()
+    print("running on host", socket.gethostname())
 
+    #numels = [2*4*8*8*4*2] + [4*4*8*8*4*2 * i for i in range(1,23)]
+
+    # GiBs = {"parallel":[],"not parallel":[]}
+    # data_MiB = []
+
+    si = 8**3 * 16 * 4 * 3 *2
+
+    n_measurements = 15000
+    n_warmup = 1000
+
+    print("=====")
+    print("size:",si)
+    ar = torch.randn([2*si], dtype = torch.double)
+    br = torch.randn([2*si], dtype = torch.double)
+
+    ac = torch.randn([si], dtype = torch.cdouble)
+    bc = torch.randn([si], dtype = torch.cdouble)
+
+    abr = torch.ops.qcd_ml_accel_dirac.mul_real_bench_nopar(ar,br)
+    abc = torch.ops.qcd_ml_accel_dirac.mul_compl_bench_nopar(ac,bc)
+
+    for _ in range(n_warmup):
+        abr = torch.ops.qcd_ml_accel_dirac.mul_real_bench_nopar(ar,br)
+        abc = torch.ops.qcd_ml_accel_dirac.mul_compl_bench_nopar(ac,bc)
+
+
+    results_r = np.zeros(n_measurements)
+    results_c = np.zeros(n_measurements)
+    bias = np.zeros(n_measurements)
+
+    for i in range(n_measurements):
+        start = time.perf_counter_ns()
+        abr = torch.ops.qcd_ml_accel_dirac.mul_real_bench_nopar(ar,br)
+        stop = time.perf_counter_ns()
+        results_r[i] = stop - start
+
+        start = time.perf_counter_ns()
+        abc = torch.ops.qcd_ml_accel_dirac.mul_compl_bench_nopar(ac,bc)
+        stop = time.perf_counter_ns()
+        results_c[i] = stop - start
+
+        start = time.perf_counter_ns()
+        stop = time.perf_counter_ns()
+        bias[i] = stop - start
+
+    results_r_sorted = np.sort(results_r)[:(n_measurements // 5)]
+    results_c_sorted = np.sort(results_c)[:(n_measurements // 5)]
+
+    for par,results_sorted,a in [["real",results_r_sorted,ar],["complex",results_c_sorted,ac]]:
+        print("-----")
+        print(par)
+        print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
+        print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
+        print(f"best : [us] {results_sorted[0]/1000}")
+        print(f"mean bias : [us] {np.mean(bias)/1000}")
+        print(f"std bias : [us] {np.mean(bias)/1000}")
+
+        data_size = 3 * a.element_size() * a.nelement()
+        data_size_MiB = data_size / 1024**2
+
+        print()
+        print(f"data : [MiB] {data_size_MiB: .3f}")
+
+        throughput = data_size / (np.mean(results_sorted) / 1000**3)
+        throughput_GiBs = throughput / 1024 ** 3
+        throughput_peak = data_size / (results_sorted[0] / 1000**3)
+        throughput_peak_GiBs = throughput_peak / 1024 ** 3
+
+        print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
+        print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
+    
+
+    assert True
