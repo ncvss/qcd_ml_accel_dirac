@@ -11,13 +11,13 @@
 namespace qcd_ml_accel_dirac {
 
 at::Tensor muladd_bench_nopar(const at::Tensor& a, const at::Tensor& b, const at::Tensor& c){
-    TORCH_CHECK(a.sizes() == b.sizes());
-    TORCH_CHECK(a.sizes() == c.sizes());
-    TORCH_CHECK(a.dtype() == at::kComplexDouble);
-    TORCH_CHECK(b.dtype() == at::kComplexDouble);
-    TORCH_CHECK(c.dtype() == at::kComplexDouble);
-    TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
-    TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
+    // TORCH_CHECK(a.sizes() == b.sizes());
+    // TORCH_CHECK(a.sizes() == c.sizes());
+    // TORCH_CHECK(a.dtype() == at::kComplexDouble);
+    // TORCH_CHECK(b.dtype() == at::kComplexDouble);
+    // TORCH_CHECK(c.dtype() == at::kComplexDouble);
+    // TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
+    // TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
 
     at::Tensor a_contig = a.contiguous();
     at::Tensor b_contig = b.contiguous();
@@ -39,13 +39,13 @@ at::Tensor muladd_bench_nopar(const at::Tensor& a, const at::Tensor& b, const at
 
 
 at::Tensor muladd_bench_par(const at::Tensor& a, const at::Tensor& b, const at::Tensor& c){
-    TORCH_CHECK(a.sizes() == b.sizes());
-    TORCH_CHECK(a.sizes() == c.sizes());
-    TORCH_CHECK(a.dtype() == at::kComplexDouble);
-    TORCH_CHECK(b.dtype() == at::kComplexDouble);
-    TORCH_CHECK(c.dtype() == at::kComplexDouble);
-    TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
-    TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
+    // TORCH_CHECK(a.sizes() == b.sizes());
+    // TORCH_CHECK(a.sizes() == c.sizes());
+    // TORCH_CHECK(a.dtype() == at::kComplexDouble);
+    // TORCH_CHECK(b.dtype() == at::kComplexDouble);
+    // TORCH_CHECK(c.dtype() == at::kComplexDouble);
+    // TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
+    // TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
 
     at::Tensor a_contig = a.contiguous();
     at::Tensor b_contig = b.contiguous();
@@ -144,11 +144,11 @@ at::Tensor muladd_bench_par_time(const at::Tensor& a, const at::Tensor& b, const
 
 
 at::Tensor mul_real_bench_nopar(const at::Tensor& a, const at::Tensor& b){
-    TORCH_CHECK(a.sizes() == b.sizes());
-    TORCH_CHECK(a.dtype() == at::kDouble);
-    TORCH_CHECK(b.dtype() == at::kDouble);
-    TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
-    TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
+    // TORCH_CHECK(a.sizes() == b.sizes());
+    // TORCH_CHECK(a.dtype() == at::kDouble);
+    // TORCH_CHECK(b.dtype() == at::kDouble);
+    // TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
+    // TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
 
     at::Tensor a_contig = a.contiguous();
     at::Tensor b_contig = b.contiguous();
@@ -167,11 +167,11 @@ at::Tensor mul_real_bench_nopar(const at::Tensor& a, const at::Tensor& b){
 }
 
 at::Tensor mul_compl_bench_nopar(const at::Tensor& a, const at::Tensor& b){
-    TORCH_CHECK(a.sizes() == b.sizes());
-    TORCH_CHECK(a.dtype() == at::kComplexDouble);
-    TORCH_CHECK(b.dtype() == at::kComplexDouble);
-    TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
-    TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
+    // TORCH_CHECK(a.sizes() == b.sizes());
+    // TORCH_CHECK(a.dtype() == at::kComplexDouble);
+    // TORCH_CHECK(b.dtype() == at::kComplexDouble);
+    // TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CPU);
+    // TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CPU);
 
     at::Tensor a_contig = a.contiguous();
     at::Tensor b_contig = b.contiguous();

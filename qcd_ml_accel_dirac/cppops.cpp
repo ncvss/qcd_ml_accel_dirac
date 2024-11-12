@@ -27,6 +27,16 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("muladd_bench_par_time(Tensor a, Tensor b, Tensor c) -> Tensor");
     m.def("mul_real_bench_nopar(Tensor a, Tensor b) -> Tensor");
     m.def("mul_compl_bench_nopar(Tensor a, Tensor b) -> Tensor");
+
+    m.def("gauge_transform(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_par(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma_shift(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma_2shift(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma_2shift_split(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma_2shift_ysw(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma_2tshift(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gamma_2ytshift(Tensor U, Tensor v) -> Tensor");
 }
 
 // Registers backend implementations
@@ -42,6 +52,16 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("muladd_bench_par_time", &muladd_bench_par_time);
     m.impl("mul_real_bench_nopar", &mul_real_bench_nopar);
     m.impl("mul_compl_bench_nopar", &mul_compl_bench_nopar);
+
+    m.impl("gauge_transform", &gauge_transform);
+    m.impl("gauge_transform_par", &gauge_transform_par);
+    m.impl("gauge_transform_gamma", &gauge_transform_gamma);
+    m.impl("gauge_transform_gamma_shift", &gauge_transform_gamma_shift);
+    m.impl("gauge_transform_gamma_2shift", &gauge_transform_gamma_2shift);
+    m.impl("gauge_transform_gamma_2shift_split", &gauge_transform_gamma_2shift_split);
+    m.impl("gauge_transform_gamma_2shift_ysw", &gauge_transform_gamma_2shift_ysw);
+    m.impl("gauge_transform_gamma_2tshift", &gauge_transform_gamma_2tshift);
+    m.impl("gauge_transform_gamma_2ytshift", &gauge_transform_gamma_2ytshift);
 }
 
 }
