@@ -4,11 +4,11 @@
 
 #include <torch/extension.h>
 
-// #ifndef _OPENMP
-// #define _OPENMP
-// #endif
-// #include <ATen/ParallelOpenMP.h>
-// #include <omp.h>
+#ifndef _OPENMP
+#define _OPENMP
+#endif
+#include <ATen/ParallelOpenMP.h>
+#include <omp.h>
 
 #include "indexfunc_purec.hpp"
 #include "gamma_purec.hpp"
@@ -70,9 +70,8 @@ double dw_call_c_test ( at::Tensor dummy
     // c signifies the real or imaginary part
 
     // parallelisation
-    // at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
-
-    for (int x = 0; x < v_size[0]; x++){
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
+    for (int x = start; x < end; x++){
         for (int y = 0; y < v_size[1]; y++){
             for (int z = 0; z < v_size[2]; z++){
                 for (int t = 0; t < v_size[3]; t++){
@@ -260,12 +259,14 @@ double dw_call_c_test ( at::Tensor dummy
             }
         }
     }
-    // });
+    });
 
     //return result;
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);
+
+    delete [] result;
 
     return double(dur.count());
 }
@@ -580,9 +581,8 @@ double dw_call_c_speed ( at::Tensor dummy
     // c signifies the real or imaginary part
 
     // parallelisation
-    // at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
-
-    for (int x = 0; x < v_size[0]; x++){
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
+    for (int x = start; x < end; x++){
         for (int y = 0; y < v_size[1]; y++){
             for (int z = 0; z < v_size[2]; z++){
                 for (int t = 0; t < v_size[3]; t++){
@@ -605,80 +605,72 @@ double dw_call_c_speed ( at::Tensor dummy
                                 result[ptridx6(x,y,z,t,s,g,0,vstride)]
                                 += (
                                     // mu = 0
-                                    -U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,0,ustride)]
-                                    *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,0,vstride)]
-                                    -U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,1,ustride)]
-                                    *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,1,vstride)]
-                                    -U[ptridx7(0,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,0,vstride)]
-                                    +U[ptridx7(0,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,1,vstride)]
-                                    - gamf[0][s]*(
-                                        U[ptridx7(0,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
-                                        +U[ptridx7(0,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
-                                        +U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,1,ustride)]
-                                        *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
-                                        -U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,0,ustride)]
-                                        *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
+                                    U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,0,ustride)] * (
+                                        -v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,0,vstride)]
+                                        + gamf[0][s] * v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,1,ustride)] * (
+                                        -v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,1,vstride)]
+                                        -gamf[0][s] * v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(0,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,0,vstride)]
+                                        -gamf[0][s] * v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(0,x,y,z,t,g,gi,1,ustride)] * (
+                                        v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,1,vstride)]
+                                        -gamf[0][s] * v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
                                     )
                                     // mu = 1
-                                    -U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,0,ustride)]
-                                    *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,0,vstride)]
-                                    -U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,1,ustride)]
-                                    *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,1,vstride)]
-                                    -U[ptridx7(1,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,0,vstride)]
-                                    +U[ptridx7(1,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,1,vstride)]
-                                    + gamf[1][s]*(
-                                        U[ptridx7(1,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
-                                        -U[ptridx7(1,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
-                                        -U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,0,ustride)]
-                                        *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
-                                        -U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,1,ustride)]
-                                        *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
+                                    + U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,0,ustride)] * (
+                                        -v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,0,vstride)]
+                                        -gamf[1][s] * v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,1,ustride)] * (
+                                        -v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,1,vstride)]
+                                        -gamf[1][s] * v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,0,vstride)]
+                                        +gamf[1][s] * v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,y,z,t,g,gi,1,ustride)] * (
+                                        v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,1,vstride)]
+                                        -gamf[1][s] * v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
                                     )
                                     // mu = 2
-                                    -U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,0,ustride)]
-                                    *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,0,vstride)]
-                                    -U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,1,ustride)]
-                                    *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,1,vstride)]
-                                    -U[ptridx7(2,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,0,vstride)]
-                                    +U[ptridx7(2,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,1,vstride)]
-                                    - gamf[2][s]*(
-                                        U[ptridx7(2,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,1,vstride)]
-                                        +U[ptridx7(2,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,0,vstride)]
-                                        +U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,1,ustride)]
-                                        *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,0,vstride)]
-                                        -U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,0,ustride)]
-                                        *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,1,vstride)]
+                                    + U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,0,ustride)] * (
+                                        -v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,0,vstride)]
+                                        +gamf[2][s] * v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,1,ustride)] * (
+                                        -v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,1,vstride)]
+                                        -gamf[2][s] * v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(2,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,0,vstride)]
+                                        -gamf[2][s] * v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(2,x,y,z,t,g,gi,1,ustride)] * (
+                                        v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,1,vstride)]
+                                        -gamf[2][s] * v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,0,vstride)]
                                     )
                                     // mu = 3
-                                    -U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,0,ustride)]
-                                    *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,0,vstride)]
-                                    -U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,1,ustride)]
-                                    *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,1,vstride)]
-                                    -U[ptridx7(3,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,0,vstride)]
-                                    +U[ptridx7(3,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,1,vstride)]
-                                    + gamf[3][s]*(
-                                        U[ptridx7(3,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,0,vstride)]
-                                        -U[ptridx7(3,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,1,vstride)]
-                                        -U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,0,ustride)]
-                                        *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,0,vstride)]
-                                        -U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,1,ustride)]
-                                        *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,1,vstride)]
+                                    + U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,0,ustride)] * (
+                                        -v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,0,vstride)]
+                                        -gamf[3][s] * v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,1,ustride)] * (
+                                        -v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,1,vstride)]
+                                        -gamf[3][s] * v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(3,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,0,vstride)]
+                                        +gamf[3][s] * v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(3,x,y,z,t,g,gi,1,ustride)] * (
+                                        v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,1,vstride)]
+                                        -gamf[3][s] * v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,1,vstride)]
                                     )
                                 ) *0.5;
                                 
@@ -686,80 +678,76 @@ double dw_call_c_speed ( at::Tensor dummy
                                 result[ptridx6(x,y,z,t,s,g,1,vstride)]
                                 += (
                                     // mu = 0
-                                    -U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,0,ustride)]
-                                    *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,1,vstride)]
-                                    +U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,1,ustride)]
-                                    *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,0,vstride)]
-                                    -U[ptridx7(0,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,1,vstride)]
-                                    -U[ptridx7(0,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,0,vstride)]
-                                    + gamf[0][s]*(
-                                        U[ptridx7(0,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
-                                        -U[ptridx7(0,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
-                                        -U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,0,ustride)]
-                                        *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
-                                        -U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,1,ustride)]
-                                        *  v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
+                                    U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,0,ustride)] * (
+                                        -v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,1,vstride)]
+                                        -gamf[0][s] * v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(0,(x-1+v_size[0])%v_size[0],y,z,t,gi,g,1,ustride)] * (
+                                        v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,s,gi,0,vstride)]
+                                        -gamf[0][s] * v[ptridx6((x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(0,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,1,vstride)]
+                                        +gamf[0][s] * v[ptridx6((x+1)%v_size[0],y,z,t,gamx[0][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(0,x,y,z,t,g,gi,1,ustride)] * (
+                                        -v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,0,vstride)]
+                                        -gamf[0][s] * v[ptridx6((x+1)%v_size[0],y,z,t,s,gi,0,vstride)]
                                     )
                                     // mu = 1
-                                    -U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,0,ustride)]
-                                    *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,1,vstride)]
-                                    +U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,1,ustride)]
-                                    *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,0,vstride)]
-                                    -U[ptridx7(1,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,1,vstride)]
-                                    -U[ptridx7(1,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,0,vstride)]
-                                    + gamf[1][s]*(
-                                        U[ptridx7(1,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
-                                        +U[ptridx7(1,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
-                                        -U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,0,ustride)]
-                                        *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
-                                        +U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,1,ustride)]
-                                        *  v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
+                                    + U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,0,ustride)] * (
+                                        -v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,1,vstride)]
+                                        -gamf[1][s] * v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,gi,g,1,ustride)] * (
+                                        v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,gi,0,vstride)]
+                                        +gamf[1][s] * v[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,1,vstride)]
+                                        +gamf[1][s] * v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,y,z,t,g,gi,0,ustride)] *(
+                                        -v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,1,vstride)]
+                                        +gamf[1][s] * v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(1,x,y,z,t,g,gi,1,ustride)] * (
+                                        -v[ptridx6(x,(y+1)%v_size[1],z,t,s,gi,0,vstride)]
+                                        +gamf[1][s] * v[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],gi,0,vstride)]
                                     )
                                     // mu = 2
-                                    -U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,0,ustride)]
-                                    *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,1,vstride)]
-                                    +U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,1,ustride)]
-                                    *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,0,vstride)]
-                                    -U[ptridx7(2,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,1,vstride)]
-                                    -U[ptridx7(2,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,0,vstride)]
-                                    + gamf[2][s]*(
-                                        U[ptridx7(2,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,0,vstride)]
-                                        -U[ptridx7(2,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,1,vstride)]
-                                        -U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,0,ustride)]
-                                        *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,0,vstride)]
-                                        -U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,1,ustride)]
-                                        *  v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,1,vstride)]
+                                    + U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,0,ustride)] * (
+                                        -v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,1,vstride)]
+                                        -gamf[2][s] * v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(2,x,y,(z-1+v_size[2])%v_size[2],t,gi,g,1,ustride)] * (
+                                        v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,0,vstride)]
+                                        -gamf[2][s] * v[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(2,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,1,vstride)]
+                                        +gamf[2][s] * v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(2,x,y,z,t,g,gi,1,ustride)] * (
+                                        -v[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,0,vstride)]
+                                        -gamf[2][s] * v[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,1,vstride)]
                                     )
                                     // mu = 3
-                                    -U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,0,ustride)]
-                                    *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,1,vstride)]
-                                    +U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,1,ustride)]
-                                    *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,0,vstride)]
-                                    -U[ptridx7(3,x,y,z,t,g,gi,0,ustride)]
-                                    *  v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,1,vstride)]
-                                    -U[ptridx7(3,x,y,z,t,g,gi,1,ustride)]
-                                    *  v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,0,vstride)]
-                                    + gamf[3][s]*(
-                                        U[ptridx7(3,x,y,z,t,g,gi,0,ustride)]
-                                        *  v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,1,vstride)]
-                                        +U[ptridx7(3,x,y,z,t,g,gi,1,ustride)]
-                                        *  v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,0,vstride)]
-                                        -U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,0,ustride)]
-                                        *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,1,vstride)]
-                                        +U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,1,ustride)]
-                                        *  v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,0,vstride)]
+                                    + U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,0,ustride)] * (
+                                        -v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,1,vstride)]
+                                        -gamf[3][s] * v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],gi,g,1,ustride)] * (
+                                        v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,gi,0,vstride)]
+                                        +gamf[3][s] * v[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,0,vstride)]
+                                    )
+                                    + U[ptridx7(3,x,y,z,t,g,gi,0,ustride)] * (
+                                        -v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,1,vstride)]
+                                        +gamf[3][s] * v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,1,vstride)]
+                                    )
+                                    + U[ptridx7(3,x,y,z,t,g,gi,1,ustride)] * (
+                                        -v[ptridx6(x,y,z,(t+1)%v_size[3],s,gi,0,vstride)]
+                                        +gamf[3][s] * v[ptridx6(x,y,z,(t+1)%v_size[3],gamx[3][s],gi,0,vstride)]
                                     )
                                 ) *0.5;
                             }
@@ -770,12 +758,14 @@ double dw_call_c_speed ( at::Tensor dummy
             }
         }
     }
-    // });
+    });
 
     //return result;
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);
+
+    delete [] result;
 
     return double(dur.count());
 }
