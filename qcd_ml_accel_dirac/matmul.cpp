@@ -481,19 +481,22 @@ at::Tensor gauge_transform_gamma_2ytshift (const at::Tensor& U, const at::Tensor
     at::Tensor U_contig = U.contiguous();
 
     int64_t v_size [6];
-    int64_t u_size [6];
     for (int64_t sj = 0; sj < 6; sj++){
         v_size[sj] = v_contig.size(sj);
+    }
+    int64_t u_size [7];
+    for (int64_t sj = 0; sj < 7; sj++){
         u_size[sj] = U_contig.size(sj);
     }
-
     int64_t vstride [6];
-    int64_t ustride [6];
     vstride[5] = 1;
-    ustride[5] = 1;
     for (int64_t sj = 4; sj >= 0; sj--){
-        vstride [sj] = vstride[sj+1] * v_size[sj+1];
-        ustride [sj] = ustride[sj+1] * u_size[sj+1];
+        vstride[sj] = vstride[sj+1] * v_size[sj+1];
+    }
+    int64_t ustride [7];
+    ustride[6] = 1;
+    for (int64_t sj = 5; sj >= 0; sj--){
+        ustride[sj] = ustride[sj+1] * u_size[sj+1];
     }
 
     at::Tensor result = torch::zeros(v_size, v.options());
@@ -511,11 +514,11 @@ at::Tensor gauge_transform_gamma_2ytshift (const at::Tensor& U, const at::Tensor
                         for (int64_t i = 0; i < 3; i++){
                             for (int64_t s = 0; s < 4; s++){
                                 res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
-                                    U_ptr[ptridx6(x,y,z,t,g,i,ustride)] * (
+                                    U_ptr[ptridx7(3,x,y,z,t,g,i,ustride)] * (
                                         v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],s,i,vstride)]
                                         + gamf[3][s] * v_ptr[ptridx6(x,y,z,(t+1)%v_size[3],gamx[1][s],i,vstride)]
                                     )
-                                    + U_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],g,i,ustride)] * (
+                                    + U_ptr[ptridx7(3,x,y,z,(t-1+v_size[3])%v_size[3],g,i,ustride)] * (
                                         v_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],s,i,vstride)]
                                         + gamf[3][s] * v_ptr[ptridx6(x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],i,vstride)]
                                     )
@@ -527,11 +530,11 @@ at::Tensor gauge_transform_gamma_2ytshift (const at::Tensor& U, const at::Tensor
                         for (int64_t i = 0; i < 3; i++){
                             for (int64_t s = 0; s < 4; s++){
                                 res_ptr[ptridx6(x,y,z,t,s,g,vstride)] += (
-                                    U_ptr[ptridx6(x,y,z,t,g,i,ustride)] * (
+                                    U_ptr[ptridx7(1,x,y,z,t,g,i,ustride)] * (
                                         v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,s,i,vstride)]
                                         + gamf[1][s] * v_ptr[ptridx6(x,(y+1)%v_size[1],z,t,gamx[1][s],i,vstride)]
                                     )
-                                    + U_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,g,i,ustride)] * (
+                                    + U_ptr[ptridx7(1,x,(y-1+v_size[1])%v_size[1],z,t,g,i,ustride)] * (
                                         v_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,s,i,vstride)]
                                         + gamf[1][s] * v_ptr[ptridx6(x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],i,vstride)]
                                     )
