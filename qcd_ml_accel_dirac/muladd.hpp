@@ -62,6 +62,11 @@ at::Tensor mul_real_bench_nopar(const at::Tensor& a, const at::Tensor& b);
  */
 at::Tensor mul_compl_bench_nopar(const at::Tensor& a, const at::Tensor& b);
 
+
+// note: the following functions take gauge field tensors of different sizes,
+// not necessarily of the usual size 4x[lattice]x3x3,
+// as the partial computations need a varying number of gauge links
+
 /**
  * @brief Multiply a gauge matrix onto a vector at each lattice site.
  * 
@@ -163,5 +168,16 @@ at::Tensor gauge_transform_gamma_2tshift (const at::Tensor& U, const at::Tensor&
  * @return at::Tensor 
  */
 at::Tensor gauge_transform_gamma_2ytshift (const at::Tensor& U, const at::Tensor& v);
+
+/**
+ * @brief Do roughly the following computation:
+ *        
+ *        (H_+1 + H_-3) v
+ * 
+ * @param U 
+ * @param v 
+ * @return at::Tensor 
+ */
+at::Tensor gauge_transform_simple_ytshift (const at::Tensor& U, const at::Tensor& v);
 
 }

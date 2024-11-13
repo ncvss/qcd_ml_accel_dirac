@@ -37,6 +37,10 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("gauge_transform_gamma_2shift_ysw(Tensor U, Tensor v) -> Tensor");
     m.def("gauge_transform_gamma_2tshift(Tensor U, Tensor v) -> Tensor");
     m.def("gauge_transform_gamma_2ytshift(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_simple_ytshift(Tensor U, Tensor v) -> Tensor");
+
+    m.def("dirac_wilson_call_nohop(Tensor U, Tensor v, float mass) -> Tensor");
+    m.def("dirac_wilson_call_nohop_usw(Tensor U, Tensor v, float mass) -> Tensor");
 }
 
 // Registers backend implementations
@@ -62,6 +66,10 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("gauge_transform_gamma_2shift_ysw", &gauge_transform_gamma_2shift_ysw);
     m.impl("gauge_transform_gamma_2tshift", &gauge_transform_gamma_2tshift);
     m.impl("gauge_transform_gamma_2ytshift", &gauge_transform_gamma_2ytshift);
+    m.impl("gauge_transform_simple_ytshift", &gauge_transform_simple_ytshift);
+
+    m.impl("dirac_wilson_call_nohop", &dw_call_nohop);
+    m.impl("dirac_wilson_call_nohop_usw", &dw_call_nohop_Usw);
 }
 
 }

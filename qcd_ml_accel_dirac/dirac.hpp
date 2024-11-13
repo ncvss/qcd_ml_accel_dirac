@@ -14,6 +14,31 @@ namespace qcd_ml_accel_dirac{
  */
 at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 
+/**
+ * @brief Apply the dirac wilson operator,
+ *        but replace the next neighbour contributions by the local contribution.
+ *        Used for finding performance bottlenecks.
+ * 
+ * @param U 
+ * @param v 
+ * @param mass 
+ * @return at::Tensor 
+ */
+at::Tensor dw_call_nohop (const at::Tensor& U, const at::Tensor& v, double mass);
+
+/**
+ * @brief Apply the dirac wilson operator,
+ *        but replace the next neighbour contributions by the local contribution.
+ *        Also, U has a different layout here.
+ *        Used for finding performance bottlenecks.
+ * 
+ * @param U 
+ * @param v 
+ * @param mass 
+ * @return at::Tensor 
+ */
+at::Tensor dw_call_nohop_Usw (const at::Tensor& U, const at::Tensor& v, double mass);
+
 
 /**
  * @brief apply the dirac wilson clover operator to a vector field
