@@ -30,7 +30,7 @@ at::Tensor dwc_call_p_cpu (const at::Tensor& U, const at::Tensor& v, const std::
 /**
  * @brief call the domain wall dirac operator on a vector field
  * 
- * @param U the gauge field configuration, (4,Ls,Lx,Ly,Lz,Lt,3,3)-tensor
+ * @param U the gauge field configuration, (4,Lx,Ly,Lz,Lt,3,3)-tensor
  * @param v the vector field, (Ls,Lx,Ly,Lz,Lt,4,3)-tensor
  * @param mass the quark mass parameter
  * @param m5 the domain wall mass parameter
