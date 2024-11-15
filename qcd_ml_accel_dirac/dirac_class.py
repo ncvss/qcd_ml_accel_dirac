@@ -35,6 +35,8 @@ class _PathBufferTemp:
 # Dirac Wilson operator, using C++ functions
 class dirac_wilson:
     def __init__(self, U, mass_parameter):
+        if isinstance(U, list):
+            U = torch.stack(U)
         self.U = U
         self.mass_parameter = mass_parameter
 
@@ -46,6 +48,8 @@ class dirac_wilson:
 class dirac_wilson_clover:
 
     def __init__(self, U, mass_parameter, csw):
+        if isinstance(U, list):
+            U = torch.stack(U)
         self.U = U
         self.mass_parameter = mass_parameter
         self.csw = csw
