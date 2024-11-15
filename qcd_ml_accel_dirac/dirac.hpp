@@ -28,5 +28,15 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass);
 at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::vector<at::Tensor>& F,
                          double mass, double csw);
 
+/**
+ * @brief apply the domain wall dirac operator to a field
+ * 
+ * @param U the gauge field configuration, (4,Lx,Ly,Lz,Lt,3,3)-tensor
+ * @param v the domain wall fermion field, (Ls,Lx,Ly,Lz,Lt,4,3)-tensor
+ * @param mass the bare mass parameter
+ * @param m5 the bulk mass parameter
+ * @return at::Tensor 
+ */
+at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass, double m5);
 
 }
