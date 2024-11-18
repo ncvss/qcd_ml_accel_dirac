@@ -18,8 +18,8 @@ try:
         mobius_params = {
             "mass": m,
             "M5": m5,
-            "b": 0.0, #1.5?
-            "c": 0.0, #0.5?
+            "b": 1.0,
+            "c": 0.0,
             "Ls": 8,
             "boundary_phases": [1.0, 1.0, 1.0, 1.0],
         }
@@ -30,28 +30,27 @@ try:
         rng.cnormal(src)
 
         res = qm(src)
-        print("gpt result:")
-        print(res[2,0,0,0,0])
-        print(res[:].shape)
+        # print("gpt result:")
+        # print(res[2,0,0,0,0])
+        # print(res[:].shape)
         
-        print("result converted to torch:")
+        # print("result converted to torch:")
         res_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(res))
-        print(res_torch.shape)
-        print(res_torch[2,0,0,0,0])
+        # print(res_torch.shape)
+        # print(res_torch[2,0,0,0,0])
 
-        print("src and U in torch:")
+        # print("src and U in torch:")
         src_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(src))
-        print(src_torch.shape)
+        # print(src_torch.shape)
         U_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(U))
-        print(U_torch.shape)
+        # print(U_torch.shape)
         got = torch.ops.qcd_ml_accel_dirac.domain_wall_dirac_call(U_torch,src_torch,m,m5)
 
-        print("some elements of my result:")
-        for i in range(5):
-            print(got[tuple(2 if k==i else 0 for k in range(5))])
+        # print("some elements of my result:")
+        # for i in range(5):
+        #     print(got[tuple(2 if k==i else 0 for k in range(5))])
 
         assert torch.allclose(res_torch,got)
-        #assert True
 
 
 except ImportError:

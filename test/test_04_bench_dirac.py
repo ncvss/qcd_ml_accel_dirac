@@ -92,6 +92,10 @@ def test_pytorch_timer_wilson_clover():
 
 def test_perf_counter_wilson():
     print()
+    num_threads = torch.get_num_threads()
+    print("running on host", socket.gethostname())
+    print(f'Machine has {num_threads} threads')
+
     n_measurements = 1000
     n_warmup = 10
 
@@ -167,6 +171,10 @@ def test_perf_counter_wilson():
 
 def test_perf_counter_wilson_clover():
     print()
+    num_threads = torch.get_num_threads()
+    print("running on host", socket.gethostname())
+    print(f'Machine has {num_threads} threads')
+    
     n_measurements = 1000
     n_warmup = 10
 

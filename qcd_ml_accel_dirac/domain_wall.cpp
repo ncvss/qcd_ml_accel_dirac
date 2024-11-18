@@ -233,13 +233,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                     res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                         std::conj(U_ptr[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,ustride)])
                                         * (
-                                            -v_ptr[ptridx7(r,(x-1+v_size[0])%v_size[0],y,z,t,s,gi,vstride)]
-                                            -gamf[0][s] * v_ptr[ptridx7(r,(x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,(x-1+v_size[1])%v_size[1],y,z,t,s,gi,vstride)]
+                                            -gamf[0][s] * v_ptr[ptridx7(r,(x-1+v_size[1])%v_size[1],y,z,t,gamx[0][s],gi,vstride)]
                                         )
                                         + U_ptr[ptridx7(0,x,y,z,t,g,gi,ustride)]
                                         * (
-                                            -v_ptr[ptridx7(r,(x+1)%v_size[0],y,z,t,s,gi,vstride)]
-                                            +gamf[0][s] * v_ptr[ptridx7(r,(x+1)%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,(x+1)%v_size[1],y,z,t,s,gi,vstride)]
+                                            +gamf[0][s] * v_ptr[ptridx7(r,(x+1)%v_size[1],y,z,t,gamx[0][s],gi,vstride)]
                                         )
                                     ) *0.5;
                                 }
@@ -253,13 +253,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                     res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                         std::conj(U_ptr[ptridx7(1,x,(y-1+u_size[2])%u_size[2],z,t,gi,g,ustride)])
                                         * (
-                                            -v_ptr[ptridx7(r,x,(y-1+v_size[1])%v_size[1],z,t,s,gi,vstride)]
-                                            -gamf[1][s] * v_ptr[ptridx7(r,x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,x,(y-1+v_size[2])%v_size[2],z,t,s,gi,vstride)]
+                                            -gamf[1][s] * v_ptr[ptridx7(r,x,(y-1+v_size[2])%v_size[2],z,t,gamx[1][s],gi,vstride)]
                                         )
                                         + U_ptr[ptridx7(1,x,y,z,t,g,gi,ustride)]
                                         * (
-                                            -v_ptr[ptridx7(r,x,(y+1)%v_size[1],z,t,s,gi,vstride)]
-                                            +gamf[1][s] * v_ptr[ptridx7(r,x,(y+1)%v_size[1],z,t,gamx[1][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,x,(y+1)%v_size[2],z,t,s,gi,vstride)]
+                                            +gamf[1][s] * v_ptr[ptridx7(r,x,(y+1)%v_size[2],z,t,gamx[1][s],gi,vstride)]
                                         )
                                     ) *0.5;
                                 }
@@ -273,13 +273,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                     res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                         std::conj(U_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],t,gi,g,ustride)])
                                         * (
-                                            -v_ptr[ptridx7(r,x,y,(z-1+v_size[2])%v_size[2],t,s,gi,vstride)]
-                                            -gamf[2][s] * v_ptr[ptridx7(r,x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,x,y,(z-1+v_size[3])%v_size[3],t,s,gi,vstride)]
+                                            -gamf[2][s] * v_ptr[ptridx7(r,x,y,(z-1+v_size[3])%v_size[3],t,gamx[2][s],gi,vstride)]
                                         )
                                         + U_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
                                         * (
-                                            -v_ptr[ptridx7(r,x,y,(z+1)%v_size[2],t,s,gi,vstride)]
-                                            +gamf[2][s] * v_ptr[ptridx7(r,x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,x,y,(z+1)%v_size[3],t,s,gi,vstride)]
+                                            +gamf[2][s] * v_ptr[ptridx7(r,x,y,(z+1)%v_size[3],t,gamx[2][s],gi,vstride)]
                                         )
                                     ) *0.5;
                                 }
@@ -293,13 +293,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                     res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                         std::conj(U_ptr[ptridx7(3,x,y,z,(t-1+u_size[4])%u_size[4],gi,g,ustride)])
                                         * (
-                                            -v_ptr[ptridx7(r,x,y,z,(t-1+v_size[3])%v_size[3],s,gi,vstride)]
-                                            -gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,x,y,z,(t-1+v_size[4])%v_size[4],s,gi,vstride)]
+                                            -gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t-1+v_size[4])%v_size[4],gamx[3][s],gi,vstride)]
                                         )
                                         + U_ptr[ptridx7(3,x,y,z,t,g,gi,ustride)]
                                         * (
-                                            -v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[3],s,gi,vstride)]
-                                            +gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[3],gamx[3][s],gi,vstride)]
+                                            -v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[4],s,gi,vstride)]
+                                            +gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[4],gamx[3][s],gi,vstride)]
                                         )
                                     ) *0.5;
                                 }
@@ -343,13 +343,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                 res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                     std::conj(U_ptr[ptridx7(0,(x-1+u_size[1])%u_size[1],y,z,t,gi,g,ustride)])
                                     * (
-                                        -v_ptr[ptridx7(r,(x-1+v_size[0])%v_size[0],y,z,t,s,gi,vstride)]
-                                        -gamf[0][s] * v_ptr[ptridx7(r,(x-1+v_size[0])%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,(x-1+v_size[1])%v_size[1],y,z,t,s,gi,vstride)]
+                                        -gamf[0][s] * v_ptr[ptridx7(r,(x-1+v_size[1])%v_size[1],y,z,t,gamx[0][s],gi,vstride)]
                                     )
                                     + U_ptr[ptridx7(0,x,y,z,t,g,gi,ustride)]
                                     * (
-                                        -v_ptr[ptridx7(r,(x+1)%v_size[0],y,z,t,s,gi,vstride)]
-                                        +gamf[0][s] * v_ptr[ptridx7(r,(x+1)%v_size[0],y,z,t,gamx[0][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,(x+1)%v_size[1],y,z,t,s,gi,vstride)]
+                                        +gamf[0][s] * v_ptr[ptridx7(r,(x+1)%v_size[1],y,z,t,gamx[0][s],gi,vstride)]
                                     )
                                 ) *0.5;
                             }
@@ -363,13 +363,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                 res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                     std::conj(U_ptr[ptridx7(1,x,(y-1+u_size[2])%u_size[2],z,t,gi,g,ustride)])
                                     * (
-                                        -v_ptr[ptridx7(r,x,(y-1+v_size[1])%v_size[1],z,t,s,gi,vstride)]
-                                        -gamf[1][s] * v_ptr[ptridx7(r,x,(y-1+v_size[1])%v_size[1],z,t,gamx[1][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,x,(y-1+v_size[2])%v_size[2],z,t,s,gi,vstride)]
+                                        -gamf[1][s] * v_ptr[ptridx7(r,x,(y-1+v_size[2])%v_size[2],z,t,gamx[1][s],gi,vstride)]
                                     )
                                     + U_ptr[ptridx7(1,x,y,z,t,g,gi,ustride)]
                                     * (
-                                        -v_ptr[ptridx7(r,x,(y+1)%v_size[1],z,t,s,gi,vstride)]
-                                        +gamf[1][s] * v_ptr[ptridx7(r,x,(y+1)%v_size[1],z,t,gamx[1][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,x,(y+1)%v_size[2],z,t,s,gi,vstride)]
+                                        +gamf[1][s] * v_ptr[ptridx7(r,x,(y+1)%v_size[2],z,t,gamx[1][s],gi,vstride)]
                                     )
                                 ) *0.5;
                             }
@@ -383,13 +383,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                 res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                     std::conj(U_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],t,gi,g,ustride)])
                                     * (
-                                        -v_ptr[ptridx7(r,x,y,(z-1+v_size[2])%v_size[2],t,s,gi,vstride)]
-                                        -gamf[2][s] * v_ptr[ptridx7(r,x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,x,y,(z-1+v_size[3])%v_size[3],t,s,gi,vstride)]
+                                        -gamf[2][s] * v_ptr[ptridx7(r,x,y,(z-1+v_size[3])%v_size[3],t,gamx[2][s],gi,vstride)]
                                     )
                                     + U_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
                                     * (
-                                        -v_ptr[ptridx7(r,x,y,(z+1)%v_size[2],t,s,gi,vstride)]
-                                        +gamf[2][s] * v_ptr[ptridx7(r,x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,x,y,(z+1)%v_size[3],t,s,gi,vstride)]
+                                        +gamf[2][s] * v_ptr[ptridx7(r,x,y,(z+1)%v_size[3],t,gamx[2][s],gi,vstride)]
                                     )
                                 ) *0.5;
                             }
@@ -403,13 +403,13 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
                                 res_ptr[ptridx7(r,x,y,z,t,s,g,vstride)]+=( 
                                     std::conj(U_ptr[ptridx7(3,x,y,z,(t-1+u_size[4])%u_size[4],gi,g,ustride)])
                                     * (
-                                        -v_ptr[ptridx7(r,x,y,z,(t-1+v_size[3])%v_size[3],s,gi,vstride)]
-                                        -gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t-1+v_size[3])%v_size[3],gamx[3][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,x,y,z,(t-1+v_size[4])%v_size[4],s,gi,vstride)]
+                                        -gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t-1+v_size[4])%v_size[4],gamx[3][s],gi,vstride)]
                                     )
                                     + U_ptr[ptridx7(3,x,y,z,t,g,gi,ustride)]
                                     * (
-                                        -v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[3],s,gi,vstride)]
-                                        +gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[3],gamx[3][s],gi,vstride)]
+                                        -v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[4],s,gi,vstride)]
+                                        +gamf[3][s] * v_ptr[ptridx7(r,x,y,z,(t+1)%v_size[4],gamx[3][s],gi,vstride)]
                                     )
                                 ) *0.5;
                             }
