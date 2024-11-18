@@ -5,7 +5,6 @@ import qcd_ml_accel_dirac
 
 try:
     import gpt as g
-    from qcd_ml.compat.gpt import lattice2ndarray, ndarray2lattice
 
 
     def test_domain_wall():
@@ -30,25 +29,14 @@ try:
         rng.cnormal(src)
 
         res = qm(src)
-        # print("gpt result:")
-        # print(res[2,0,0,0,0])
-        # print(res[:].shape)
-        
-        # print("result converted to torch:")
+
         res_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(res))
-        # print(res_torch.shape)
-        # print(res_torch[2,0,0,0,0])
 
-        # print("src and U in torch:")
         src_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(src))
-        # print(src_torch.shape)
         U_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(U))
-        # print(U_torch.shape)
-        got = torch.ops.qcd_ml_accel_dirac.domain_wall_dirac_call(U_torch,src_torch,m,m5)
 
-        # print("some elements of my result:")
-        # for i in range(5):
-        #     print(got[tuple(2 if k==i else 0 for k in range(5))])
+        qm_cpp = qcd_ml_accel_dirac.domain_wall_dirac(U_torch,m,m5)
+        got = qm_cpp(src_torch)
 
         assert torch.allclose(res_torch,got)
 

@@ -48,7 +48,9 @@ class dirac_wilson:
         
 # Dirac Wilson operator with clover term improvement, using C++
 class dirac_wilson_clover:
-
+    """
+    Dirac Wilson Clover operator with gauge config U.
+    """
     def __init__(self, U, mass_parameter, csw):
         self.U = U
         self.mass_parameter = mass_parameter
@@ -87,4 +89,17 @@ class dirac_wilson_clover:
         
     def __call__ (self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_clover_call(self.U, v, self.field_strength, self.mass_parameter, self.csw)
+
+
+class domain_wall_dirac:
+    """
+    Domain Wall Dirac operator in Shamir formulation with gauge config U.
+    """
+    def __init__(self, U, mass_parameter, m5_parameter):
+        self.U = U
+        self.mass_parameter = mass_parameter
+        self.m5_parameter = m5_parameter
+
+    def __call__(self, v):
+        return torch.ops.qcd_ml_accel_dirac.domain_wall_dirac_call(self.U, v, self.mass_parameter, self.m5_parameter)
 

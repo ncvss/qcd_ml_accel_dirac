@@ -29,7 +29,7 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
                          double mass, double csw);
 
 /**
- * @brief apply the domain wall dirac operator to a field
+ * @brief apply the shamir domain wall dirac operator to a field
  * 
  * @param U the gauge field configuration, (4,Lx,Ly,Lz,Lt,3,3)-tensor
  * @param v the domain wall fermion field, (Ls,Lx,Ly,Lz,Lt,4,3)-tensor
