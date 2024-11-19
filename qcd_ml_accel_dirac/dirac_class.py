@@ -38,6 +38,8 @@ class dirac_wilson:
     Dirac Wilson operator with gauge config U.
     """
     def __init__(self, U, mass_parameter):
+        if isinstance(U, list):
+            U = torch.stack(U)
         self.U = U
         self.mass_parameter = mass_parameter
 
@@ -52,6 +54,8 @@ class dirac_wilson_clover:
     Dirac Wilson Clover operator with gauge config U.
     """
     def __init__(self, U, mass_parameter, csw):
+        if isinstance(U, list):
+            U = torch.stack(U)
         self.U = U
         self.mass_parameter = mass_parameter
         self.csw = csw

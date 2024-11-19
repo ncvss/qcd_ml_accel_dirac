@@ -4,8 +4,7 @@ import torch
 import qcd_ml_accel_dirac
 
 try:
-    import gpt as g
-
+    import gpt as g # type: ignore
 
     def test_domain_wall():
         rng = g.random("test")
