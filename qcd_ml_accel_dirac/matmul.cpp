@@ -669,5 +669,29 @@ at::Tensor gauge_transform_gamma_2point (const at::Tensor& U, const at::Tensor& 
 
 }
 
+at::Tensor big_matmul (const at::Tensor& U, const at::Tensor& v){
+
+    int64_t hoch = U.size(0);
+    int64_t zeile = U.size(1);
+    int64_t breit = v.size(1);
+
+    at::Tensor result = torch::zeros({hoch, breit}, v.options());
+    
+    const c10::complex<double>* v_ptr = v.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U_ptr = U.const_data_ptr<c10::complex<double>>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
+
+    for (int64_t i = 0; i < hoch; i++){
+        for (int64_t j = 0; j < breit; j++){
+            for (int64_t k = 0; k < zeile; k++){
+                res_ptr[i*breit + j] += U_ptr[i*zeile + k] * v_ptr[k*breit + j];
+            }
+        }
+    }
+
+    return result;
+
+}
+
 
 }
