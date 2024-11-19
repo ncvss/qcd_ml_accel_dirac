@@ -180,4 +180,13 @@ at::Tensor gauge_transform_gamma_2ytshift (const at::Tensor& U, const at::Tensor
  */
 at::Tensor gauge_transform_simple_ytshift (const at::Tensor& U, const at::Tensor& v);
 
+/**
+ * @brief Matrix multiply U onto gamma * v + y-shifted v
+ * 
+ * @param U 
+ * @param v 
+ * @return at::Tensor 
+ */
+at::Tensor gauge_transform_gamma_2point (const at::Tensor& U, const at::Tensor& v);
+
 }

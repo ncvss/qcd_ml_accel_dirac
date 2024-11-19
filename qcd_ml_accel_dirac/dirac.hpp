@@ -39,6 +39,19 @@ at::Tensor dw_call_nohop (const at::Tensor& U, const at::Tensor& v, double mass)
  */
 at::Tensor dw_call_nohop_Usw (const at::Tensor& U, const at::Tensor& v, double mass);
 
+/**
+ * @brief Apply the dirac wilson operator,
+ *        but replace the next neighbour contributions by the local contribution
+ *        and use the same gauge field for all directions.
+ *        Used for finding performance bottlenecks.
+ * 
+ * @param U 
+ * @param v 
+ * @param mass 
+ * @return at::Tensor 
+ */
+at::Tensor dw_call_nohop_1U (const at::Tensor& U, const at::Tensor& v, double mass);
+
 
 /**
  * @brief apply the dirac wilson clover operator to a vector field
