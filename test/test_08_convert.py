@@ -26,10 +26,10 @@ try:
 
         grid = g.grid([8,8,8,16], g.double)
 
-        U_conv = lattice_to_array(array_to_lattice_list(U, grid, g.mcolor))
-        v_conv = lattice_to_array(array_to_lattice(v, grid, g.vspincolor))
+        U_conv = torch.tensor(lattice_to_array(array_to_lattice_list(U, grid, g.mcolor)))
+        v_conv = torch.tensor(lattice_to_array(array_to_lattice(v, grid, g.vspincolor)))
 
-        assert all([np.allclose(U, U_conv), np.allclose(v, v_conv)])
+        assert all([torch.allclose(U, U_conv), torch.allclose(v, v_conv)])
 
 
 except ImportError:
