@@ -47,6 +47,22 @@ class dirac_wilson:
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
     
 
+class dirac_wilson_eo:
+    """
+    Dirac Wilson operator with gauge config U on even-odd checkerboard.
+    """
+    def __init__(self, Ue, Uo, mass_parameter):
+        self.Ue = Ue
+        self.Uo = Uo
+        self.mass_parameter = mass_parameter
+
+    def __call__(self, ve, vo):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve, vo, self.mass_parameter)
+
+# create a boolean tensor that is True on even sites, with the specified space-time dimensions
+def evenmask(dims):
+    return torch.tensor([[[[(x+y+z+t)%2 == 0 for t in range(dims[3])] for z in range(dims[2])]
+      for y in range(dims[1])] for x in range(dims[0])], dtype=torch.bool)
         
 # Dirac Wilson operator with clover term improvement, using C++
 class dirac_wilson_clover:

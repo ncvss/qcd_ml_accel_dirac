@@ -20,6 +20,8 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("dirac_wilson_clover_call(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
     m.def("plaquette_action(Tensor U, float g) -> float");
     m.def("domain_wall_dirac_call(Tensor U, Tensor v, float mass, float m5) -> Tensor");
+
+    m.def("dirac_wilson_call_eo(Tensor Ue, Tensor Uo, Tensor ve, Tensor vo, float mass) -> Tensor");
 }
 
 // Registers backend implementations
@@ -29,6 +31,8 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("dirac_wilson_clover_call", &dwc_call_cpu);
     m.impl("plaquette_action", &plaq_action_cpu);
     m.impl("domain_wall_dirac_call", &domain_wall_call_cpu);
+
+    m.impl("dirac_wilson_call_eo", &dw_call_eo);
 }
 
 }
