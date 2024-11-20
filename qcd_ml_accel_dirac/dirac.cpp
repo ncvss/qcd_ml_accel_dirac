@@ -34,6 +34,9 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
     TORCH_INTERNAL_ASSERT(U.device().type() == at::DeviceType::CPU);
     TORCH_INTERNAL_ASSERT(v.device().type() == at::DeviceType::CPU);
 
+    TORCH_CHECK(U.is_contiguous());
+    TORCH_CHECK(v.is_contiguous());
+
     at::Tensor U_contig = U.contiguous();
     at::Tensor v_contig = v.contiguous();
 
@@ -193,10 +196,20 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
     TORCH_CHECK(v.size(4) == 4);
     TORCH_CHECK(v.size(5) == 3);
 
+    TORCH_CHECK(U.dtype() == at::kComplexDouble);
+    TORCH_CHECK(v.dtype() == at::kComplexDouble);
+
+    TORCH_INTERNAL_ASSERT(U.device().type() == at::DeviceType::CPU);
+    TORCH_INTERNAL_ASSERT(v.device().type() == at::DeviceType::CPU);
+
+    TORCH_CHECK(U.is_contiguous());
+    TORCH_CHECK(v.is_contiguous());
+
     // check correct size of the field strength matrices
     TORCH_CHECK(F.size() == 6);
     for (int64_t fi = 0; fi < 6; fi++){
         TORCH_CHECK(F[fi].sizes() == U[0].sizes());
+        TORCH_CHECK(F[fi].is_contiguous());
     }
 
     at::Tensor U_contig = U.contiguous();

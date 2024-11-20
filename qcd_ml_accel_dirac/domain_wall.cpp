@@ -36,6 +36,9 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
     TORCH_INTERNAL_ASSERT(U.device().type() == at::DeviceType::CPU);
     TORCH_INTERNAL_ASSERT(v.device().type() == at::DeviceType::CPU);
 
+    TORCH_CHECK(U.is_contiguous());
+    TORCH_CHECK(v.is_contiguous());
+
     at::Tensor U_contig = U.contiguous();
     at::Tensor v_contig = v.contiguous();
 

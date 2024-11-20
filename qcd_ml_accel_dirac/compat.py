@@ -3,7 +3,7 @@ import gpt as g # type: ignore
 import torch
 
 
-def pure_lattice_to_array(lattice):
+def _pure_lattice_to_array(lattice):
     """
     Convert a gpt lattice of arbitrary dimensions to a numpy.ndarray.
     """
@@ -25,7 +25,7 @@ def pure_lattice_to_array(lattice):
 
     result = lattice[:].reshape(grid_shape + dof_shape)
     result = np.transpose(result, order)
-    return result
+    return np.ascontiguousarray(result)
 
 # wrapper that can also handle lists of lattices
 def lattice_to_array(lattice):
@@ -33,10 +33,10 @@ def lattice_to_array(lattice):
     Convert a gpt lattice or a list of lattices to a single numpy.ndarray.
     """
     if isinstance(lattice, list):
-        result = [pure_lattice_to_array(l) for l in lattice]
+        result = [_pure_lattice_to_array(l) for l in lattice]
         return np.stack(result, axis=0)
     else:
-        return pure_lattice_to_array(lattice)
+        return _pure_lattice_to_array(lattice)
 
 
 def array_to_lattice(arr, grid, lat_constructor):
