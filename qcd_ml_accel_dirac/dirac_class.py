@@ -107,3 +107,79 @@ class domain_wall_dirac:
     def __call__(self, v):
         return torch.ops.qcd_ml_accel_dirac.domain_wall_dirac_call(self.U, v, self.mass_parameter, self.m5_parameter)
 
+
+_gamma = [torch.tensor([[0,0,0,1j]
+                      ,[0,0,1j,0]
+                      ,[0,-1j,0,0]
+                      ,[-1j,0,0,0]], dtype=torch.cdouble)
+         , torch.tensor([[0,0,0,-1]
+                        ,[0,0,1,0]
+                        ,[0,1,0,0]
+                        ,[-1,0,0,0]], dtype=torch.cdouble)
+         , torch.tensor([[0,0,1j,0]
+                        ,[0,0,0,-1j]
+                        ,[-1j,0,0,0]
+                        ,[0,1j,0,0]], dtype=torch.cdouble)
+         , torch.tensor([[0,0,1,0]
+                        ,[0,0,0,1]
+                        ,[1,0,0,0]
+                        ,[0,1,0,0]], dtype=torch.cdouble)
+         ]
+
+_sigma = [[(torch.matmul(_gamma[mu], _gamma[nu]) 
+            - torch.matmul(_gamma[nu], _gamma[mu])) / 2
+            for nu in range(4)] for mu in range(4)]
+
+class dirac_wilson_clover_precom:
+    """
+    Dirac Wilson Clover operator with gauge config U, with more precomputation.
+    """
+    def __init__(self, U, mass_parameter, csw):
+        if isinstance(U, list):
+            U = torch.stack(U)
+        self.U = U
+        self.mass_parameter = mass_parameter
+        self.csw = csw
+
+        Hp = lambda mu, lst: lst + [(mu, 1)]
+        Hm = lambda mu, lst: lst + [(mu, -1)]
+        
+        plaquette_paths = [[[
+                Hm(mu, Hm(nu, Hp(mu, Hp(nu, []))))
+                , Hm(nu, Hp(mu, Hp(nu, Hm(mu, []))))
+                , Hp(nu, Hm(mu, Hm(nu, Hp(mu, []))))
+                , Hp(mu, Hp(nu, Hm(mu, Hm(nu, []))))
+                ] for nu in range(4)] for mu in range(4)]
+
+        plaquette_path_buffers = [[[_PathBufferTemp(U, pi) for pi in pnu] for pnu in pmu] for pmu in plaquette_paths]
+
+        # Every path from the clover terms has equal starting and ending points.
+        # This means the transport keeps the position of the vector field unchanged
+        # and only multiplies it with a matrix independent of the vector field.
+        # That matrix can thus be precomputed.
+        Qmunu = [[torch.zeros_like(U[0]) for nu in range(4)] for mu in range(4)]
+        for mu in range(4):
+            for nu in range(4):
+                # the terms for mu = nu cancel out in the final expression, so we do not compute them
+                if mu != nu:
+                    for ii in range(4):
+                        Qmunu[mu][nu] += plaquette_path_buffers[mu][nu][ii].accumulated_U
+
+        dim = list(U.shape[1:5])
+        # tensor product of the sigma matrix and field strength tensor
+        field_strength_sigma = torch.zeros(dim+[4,3,4,3], dtype=torch.cdouble)
+        # the field strength is antisymmetric, so we only need to compute nu < mu
+        for mu in range(4):
+            for nu in range(mu):
+                Fmunu = (Qmunu[mu][nu] - Qmunu[nu][mu]) / 8
+                Fsigma = torch.einsum('xyztgh,sr->xyztsgrh',Fmunu,_sigma[mu][nu])
+                field_strength_sigma += 2*Fsigma
+        
+        self.field_strength_sigma = field_strength_sigma.contiguous().reshape(dim+[12,12])
+        
+    def __call__ (self, v):
+        dim = list(v.shape[0:4])
+        return (torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
+                - self.csw/4 * torch.matmul(self.field_strength_sigma,v.reshape(dim+[12,1])).reshape(dim+[4,3]))
+    
+

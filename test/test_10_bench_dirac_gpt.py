@@ -146,19 +146,23 @@ try:
 
         dwc_py = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
         dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
+        dwc_pre = qcd_ml_accel_dirac.dirac_wilson_clover_precom(U,mass,csw)
 
         dwv_py = dwc_py(v)
         dwv_cpp = dwc_cpp(v)
         dst_g = dwc_g(v_g)
+        dwv_pre = dwc_pre(v)
 
         for _ in range(n_warmup):
             dwv_py = dwc_py(v)
             dwv_cpp = dwc_cpp(v)
             dst_g = dwc_g(v_g)
+            dwv_pre = dwc_pre(v)
 
         results_py = np.zeros(n_measurements)
         results_cpp = np.zeros(n_measurements)
         results_g = np.zeros(n_measurements)
+        results_pre = np.zeros(n_measurements)
         bias = np.zeros(n_measurements)
 
         for i in range(n_measurements):
@@ -178,6 +182,11 @@ try:
             results_g[i] = stop - start
 
             start = time.perf_counter_ns()
+            dwv_pre = dwc_pre(v)
+            stop = time.perf_counter_ns()
+            results_pre[i] = stop - start
+
+            start = time.perf_counter_ns()
             stop = time.perf_counter_ns()
             bias[i] = stop - start
 
@@ -185,10 +194,11 @@ try:
         results_py_sorted = np.sort(results_py)[:(n_measurements // 5)]
         results_cpp_sorted = np.sort(results_cpp)[:(n_measurements // 5)]
         results_g_sorted = np.sort(results_g)[:(n_measurements // 5)]
+        results_pre_sorted = np.sort(results_pre)[:(n_measurements // 5)]
 
 
         for pack,results_sorted in [["qcd_ml",results_py_sorted], ["qcd_ml_accel_dirac",results_cpp_sorted],
-                                    ["gpt", results_g_sorted]]:
+                                    ["gpt", results_g_sorted], ["precom",results_pre_sorted]]:
             print("-----")
             print(pack)
             print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
@@ -212,7 +222,8 @@ try:
             print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
             
         dst_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(dst_g))
-        assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch)])
+        assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch),
+                    torch.allclose(dwv_cpp,dwv_pre)])
 
 except ImportError:
 
