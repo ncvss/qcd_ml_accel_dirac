@@ -40,6 +40,9 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("gauge_transform_simple_ytshift(Tensor U, Tensor v) -> Tensor");
     m.def("gauge_transform_gamma_2point(Tensor U, Tensor v) -> Tensor");
 
+    m.def("gauge_transform_spin_inner(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gauge_inner(Tensor U, Tensor v) -> Tensor");
+
     m.def("big_matmul(Tensor U, Tensor v) -> Tensor");
 
     m.def("dirac_wilson_call_nohop(Tensor U, Tensor v, float mass) -> Tensor");
@@ -72,6 +75,9 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("gauge_transform_gamma_2ytshift", &gauge_transform_gamma_2ytshift);
     m.impl("gauge_transform_simple_ytshift", &gauge_transform_simple_ytshift);
     m.impl("gauge_transform_gamma_2point", &gauge_transform_gamma_2point);
+
+    m.impl("gauge_transform_spin_inner", &gauge_transform_spin_inner);
+    m.impl("gauge_transform_gauge_inner", &gauge_transform_gauge_inner);
 
     m.impl("big_matmul", &big_matmul);
 

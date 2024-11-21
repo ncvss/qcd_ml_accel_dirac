@@ -198,4 +198,24 @@ at::Tensor gauge_transform_gamma_2point (const at::Tensor& U, const at::Tensor& 
  */
 at::Tensor big_matmul (const at::Tensor& U, const at::Tensor& v);
 
+/**
+ * @brief Multiply a gauge matrix onto a vector at each lattice site, parallel.
+ *        Here the spin is the innermost index in loop and memory.
+ * 
+ * @param U 
+ * @param v 
+ * @return at::Tensor 
+ */
+at::Tensor gauge_transform_spin_inner (const at::Tensor& U, const at::Tensor& v);
+
+/**
+ * @brief Multiply a gauge matrix onto a vector at each lattice site, parallel.
+ *        Here the gauge is the innermost index in loop and memory.
+ * 
+ * @param U 
+ * @param v 
+ * @return at::Tensor 
+ */
+at::Tensor gauge_transform_gauge_inner (const at::Tensor& U, const at::Tensor& v);
+
 }
