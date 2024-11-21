@@ -10,6 +10,8 @@
 #include "indexfunc.hpp"
 #include "gamma.hpp"
 
+#include <iostream>
+
 namespace qcd_ml_accel_dirac{
 
 
@@ -189,21 +191,30 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
     TORCH_CHECK(ve.is_contiguous());
     TORCH_CHECK(vo.is_contiguous());
 
+    //std::cout << "the sizes of vector, gauge, and return:" << std::endl;
+
     // size of space-time, spin and gauge axes
     int64_t v_size [6];
     for (int64_t sj = 0; sj < 6; sj++){
         v_size[sj] = ve.size(sj);
+        //std::cout << v_size[sj];
     }
+    //std::cout << std::endl;
     int64_t u_size [7];
     for (int64_t sj = 0; sj < 7; sj++){
         u_size[sj] = Ue.size(sj);
+        //std::cout << u_size[sj];
     }
+    //std::cout << std::endl;
     // size of the result tensor, which is even and odd stacked
     int64_t r_size [7];
     r_size[0] = 2;
+    //std::cout << r_size[0];
     for (int64_t sj = 0; sj < 6; sj++){
         r_size[sj+1] = v_size[sj];
+        //std::cout << r_size[sj+1];
     }
+    //std::cout << std::endl;
 
     // strides of the memory blocks
     int64_t vstride [6];
@@ -222,7 +233,8 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
         rstride[sj] = rstride[sj+1] * r_size[sj+1];
     }
 
-    at::Tensor result = torch::empty(r_size, ve.options());
+    // the output is flattened in the space-time lattice
+    at::Tensor result = torch::empty({r_size[0],r_size[1]*r_size[2]*r_size[3]*r_size[4],r_size[5],r_size[6]}, ve.options());
 
     const c10::complex<double>* Ue_ptr = Ue.const_data_ptr<c10::complex<double>>();
     const c10::complex<double>* Uo_ptr = Uo.const_data_ptr<c10::complex<double>>();
