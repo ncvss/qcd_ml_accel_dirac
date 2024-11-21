@@ -218,4 +218,14 @@ at::Tensor gauge_transform_spin_inner (const at::Tensor& U, const at::Tensor& v)
  */
 at::Tensor gauge_transform_gauge_inner (const at::Tensor& U, const at::Tensor& v);
 
+/**
+ * @brief Multiply a gauge matrix onto a vector at each lattice site, parallel.
+ *        Here the gauge is the innermost index in memory, and the sum over it is written explicitly.
+ * 
+ * @param U 
+ * @param v 
+ * @return at::Tensor 
+ */
+at::Tensor gauge_transform_gauge_unroll (const at::Tensor& U, const at::Tensor& v);
+
 }

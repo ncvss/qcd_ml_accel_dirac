@@ -806,5 +806,59 @@ at::Tensor gauge_transform_gauge_inner (const at::Tensor& U, const at::Tensor& v
 
 }
 
+at::Tensor gauge_transform_gauge_unroll (const at::Tensor& U, const at::Tensor& v){
+
+    TORCH_CHECK(v.is_contiguous());
+    TORCH_CHECK(U.is_contiguous());
+
+    // at::Tensor v_contig = v.contiguous();
+    // at::Tensor U_contig = U.contiguous();
+
+    int64_t v_size [6];
+    int64_t u_size [6];
+    for (int64_t sj = 0; sj < 6; sj++){
+        v_size[sj] = v.size(sj);
+        u_size[sj] = U.size(sj);
+    }
+
+    int64_t vstride [6];
+    int64_t ustride [6];
+    vstride[5] = 1;
+    ustride[5] = 1;
+    for (int64_t sj = 4; sj >= 0; sj--){
+        vstride [sj] = vstride[sj+1] * v_size[sj+1];
+        ustride [sj] = ustride[sj+1] * u_size[sj+1];
+    }
+
+    at::Tensor result = torch::zeros(v_size, v.options());
+
+    const c10::complex<double>* v_ptr = v.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* U_ptr = U.const_data_ptr<c10::complex<double>>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
+
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
+    for (int64_t x = start; x < end; x++){
+        for (int64_t y = 0; y < v_size[1]; y++){
+            for (int64_t z = 0; z < v_size[2]; z++){
+                for (int64_t t = 0; t < v_size[3]; t++){
+                    for (int64_t s = 0; s < 4; s++){
+                        for (int64_t g = 0; g < 3; g++){
+                            res_ptr[ptridx6(x,y,z,t,s,g,vstride)] +=(
+                                U_ptr[ptridx6(x,y,z,t,g,0,ustride)] * v_ptr[ptridx6(x,y,z,t,s,0,vstride)]
+                                + U_ptr[ptridx6(x,y,z,t,g,1,ustride)] * v_ptr[ptridx6(x,y,z,t,s,1,vstride)]
+                                + U_ptr[ptridx6(x,y,z,t,g,2,ustride)] * v_ptr[ptridx6(x,y,z,t,s,2,vstride)]
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    });
+
+    return result;
+
+}
+
 
 }

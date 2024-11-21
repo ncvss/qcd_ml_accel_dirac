@@ -42,6 +42,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
 
     m.def("gauge_transform_spin_inner(Tensor U, Tensor v) -> Tensor");
     m.def("gauge_transform_gauge_inner(Tensor U, Tensor v) -> Tensor");
+    m.def("gauge_transform_gauge_unroll(Tensor U, Tensor v) -> Tensor");
 
     m.def("big_matmul(Tensor U, Tensor v) -> Tensor");
 
@@ -78,6 +79,7 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
 
     m.impl("gauge_transform_spin_inner", &gauge_transform_spin_inner);
     m.impl("gauge_transform_gauge_inner", &gauge_transform_gauge_inner);
+    m.impl("gauge_transform_gauge_unroll", &gauge_transform_gauge_unroll);
 
     m.impl("big_matmul", &big_matmul);
 

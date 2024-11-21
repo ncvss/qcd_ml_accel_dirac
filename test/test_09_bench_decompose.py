@@ -95,15 +95,18 @@ def test_throughput_matmul_diff_layout():
     uv = torch.ops.qcd_ml_accel_dirac.gauge_transform_par(U,v)
     uvs = torch.ops.qcd_ml_accel_dirac.gauge_transform_spin_inner(U,vs)
     uvg = torch.ops.qcd_ml_accel_dirac.gauge_transform_gauge_inner(U,v)
+    uvu = torch.ops.qcd_ml_accel_dirac.gauge_transform_gauge_unroll(U,v)
 
     for _ in range(n_warmup):
         uv = torch.ops.qcd_ml_accel_dirac.gauge_transform_par(U,v)
         uvs = torch.ops.qcd_ml_accel_dirac.gauge_transform_spin_inner(U,vs)
         uvg = torch.ops.qcd_ml_accel_dirac.gauge_transform_gauge_inner(U,v)
+        uvu = torch.ops.qcd_ml_accel_dirac.gauge_transform_gauge_unroll(U,v)
 
     results_n = np.zeros(n_measurements)
     results_s = np.zeros(n_measurements)
     results_g = np.zeros(n_measurements)
+    results_u = np.zeros(n_measurements)
     bias = np.zeros(n_measurements)
 
     for i in range(n_measurements):
@@ -123,16 +126,23 @@ def test_throughput_matmul_diff_layout():
         results_g[i] = stop - start
 
         start = time.perf_counter_ns()
+        uvu = torch.ops.qcd_ml_accel_dirac.gauge_transform_gauge_unroll(U,v)
+        stop = time.perf_counter_ns()
+        results_u[i] = stop - start
+
+        start = time.perf_counter_ns()
         stop = time.perf_counter_ns()
         bias[i] = stop - start
 
     results_n_sorted = np.sort(results_n)[:(n_measurements // 5)]
     results_s_sorted = np.sort(results_s)[:(n_measurements // 5)]
     results_g_sorted = np.sort(results_g)[:(n_measurements // 5)]
+    results_u_sorted = np.sort(results_u)[:(n_measurements // 5)]
 
     for ty,results_sorted in [["gauge innermost in memory, spin innermost in loop",results_n_sorted],
                               ["spin innermost",results_s_sorted],
-                              ["gauge (that is summed over) innermost",results_g_sorted]]:
+                              ["gauge (that is summed over) innermost",results_g_sorted],
+                              ["gauge innermost, sum explicit",results_u_sorted]]:
         print("-----")
         print(ty)
         print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
@@ -155,7 +165,8 @@ def test_throughput_matmul_diff_layout():
         print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
         print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
     
-    assert all([torch.allclose(uv,uvs.transpose(4,5)),torch.allclose(uv,uvg)])
+    assert all([torch.allclose(uv,uvs.transpose(4,5)),torch.allclose(uv,uvg),
+                torch.allclose(uv,uvu)])
 
 def test_throughput_matmul_gamma():
     print()
