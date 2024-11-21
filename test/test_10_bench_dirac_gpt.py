@@ -44,6 +44,7 @@ try:
         mask = qcd_ml_accel_dirac.evenmask(lat_dim)
         eo_dim = lat_dim[:]
         eo_dim[-1] //= 2
+        eo_size = eo_dim[0]*eo_dim[1]*eo_dim[2]*eo_dim[3]
 
         ve = v[mask].reshape(eo_dim+[4,3])
         vo = torch.roll(v,shifts=-1,dims=3)[mask].reshape(eo_dim+[4,3])
@@ -53,6 +54,13 @@ try:
         print("shapes of Ue and ve:")
         print(Ue.shape)
         print(ve.shape)
+
+        v_back = torch.zeros_like(v)
+        v_back[mask] = vo.reshape([eo_size,4,3])
+        v_back = torch.roll(v_back,1,3)
+        v_back[mask] = ve.reshape([eo_size,4,3])
+
+        print("the back conversion worked:", torch.allclose(v,v_back))
         
 
         dw_py = qcd_ml.qcd.dirac.dirac_wilson(U,mass)

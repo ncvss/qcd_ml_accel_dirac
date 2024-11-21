@@ -182,6 +182,7 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
 }
 
 
+// As it seems right now, I do not know how to make this function work
 
 at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                        const at::Tensor& ve, const at::Tensor& vo, double mass){
@@ -241,6 +242,14 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
     const c10::complex<double>* ve_ptr = ve.const_data_ptr<c10::complex<double>>();
     const c10::complex<double>* vo_ptr = vo.const_data_ptr<c10::complex<double>>();
     c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
+
+    // shift in t direction from a +-1 in z direction
+    int64_t * ztse = new int64_t [v_size[2]];
+    int64_t * ztso = new int64_t [v_size[2]];
+    for (int64_t zi = 0; zi < v_size[2]; zi++){
+        ztse[zi] = (v_size[3]-1) * ((zi+1)%2);
+        ztso[zi] = zi%2;
+    }
 
 
     // iterate over the whole field
@@ -306,19 +315,20 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                     }
 
                     // mu = 2 term
+                    // for this term, the shifts in z also cause a shift in t
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
                                 res_ptr[ptridx7(0,x,y,z,t,s,g,vstride)] += (
-                                    std::conj(Uo_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],t,gi,g,ustride)])
+                                    std::conj(Uo_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],(t+ztso[z])%v_size[3],gi,g,ustride)])
                                     * (
-                                        -vo_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,vstride)]
-                                        -gamf[2][s] * vo_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,vstride)]
+                                        -vo_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],(t+ztso[z])%v_size[3],s,gi,vstride)]
+                                        -gamf[2][s] * vo_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],(t+ztso[z])%v_size[3],gamx[2][s],gi,vstride)]
                                     )
                                     + Ue_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
                                     * (
-                                        -vo_ptr[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,vstride)]
-                                        +gamf[2][s] * vo_ptr[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
+                                        -vo_ptr[ptridx6(x,y,(z+1)%v_size[2],(t+ztso[z])%v_size[3],s,gi,vstride)]
+                                        +gamf[2][s] * vo_ptr[ptridx6(x,y,(z+1)%v_size[2],(t+ztso[z])%v_size[3],gamx[2][s],gi,vstride)]
                                     )
                                 ) * 0.5;
                             }
@@ -416,15 +426,15 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
                                 res_ptr[ptridx7(1,x,y,z,t,s,g,vstride)] += (
-                                    std::conj(Ue_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],t,gi,g,ustride)])
+                                    std::conj(Ue_ptr[ptridx7(2,x,y,(z-1+u_size[3])%u_size[3],(t+ztse[z])%v_size[3],gi,g,ustride)])
                                     * (
-                                        -ve_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,s,gi,vstride)]
-                                        -gamf[2][s] * ve_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],t,gamx[2][s],gi,vstride)]
+                                        -ve_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],(t+ztse[z])%v_size[3],s,gi,vstride)]
+                                        -gamf[2][s] * ve_ptr[ptridx6(x,y,(z-1+v_size[2])%v_size[2],(t+ztse[z])%v_size[3],gamx[2][s],gi,vstride)]
                                     )
                                     + Uo_ptr[ptridx7(2,x,y,z,t,g,gi,ustride)]
                                     * (
-                                        -ve_ptr[ptridx6(x,y,(z+1)%v_size[2],t,s,gi,vstride)]
-                                        +gamf[2][s] * ve_ptr[ptridx6(x,y,(z+1)%v_size[2],t,gamx[2][s],gi,vstride)]
+                                        -ve_ptr[ptridx6(x,y,(z+1)%v_size[2],(t+ztse[z])%v_size[3],s,gi,vstride)]
+                                        +gamf[2][s] * ve_ptr[ptridx6(x,y,(z+1)%v_size[2],(t+ztse[z])%v_size[3],gamx[2][s],gi,vstride)]
                                     )
                                 ) * 0.5;
                             }
@@ -460,6 +470,9 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
         }
     }
     });
+
+    delete [] ztse;
+    delete [] ztso;
 
     return result;
 }
