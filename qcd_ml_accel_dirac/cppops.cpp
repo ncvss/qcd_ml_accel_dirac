@@ -21,7 +21,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("plaquette_action(Tensor U, float g) -> float");
     m.def("domain_wall_dirac_call(Tensor U, Tensor v, float mass, float m5) -> Tensor");
 
-    m.def("dirac_wilson_call_eo(Tensor Ue, Tensor Uo, Tensor ve, Tensor vo, float mass) -> Tensor");
+    m.def("dirac_wilson_call_eo(Tensor Ue, Tensor Uo, Tensor ve, Tensor vo, float mass, int[] eodim) -> Tensor");
 }
 
 // Registers backend implementations

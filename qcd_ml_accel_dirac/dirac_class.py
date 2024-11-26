@@ -51,13 +51,14 @@ class dirac_wilson_eo:
     """
     Dirac Wilson operator with gauge config U on even-odd checkerboard.
     """
-    def __init__(self, Ue, Uo, mass_parameter):
+    def __init__(self, Ue, Uo, mass_parameter, eodim):
         self.Ue = Ue
         self.Uo = Uo
         self.mass_parameter = mass_parameter
+        self.eodim = eodim
 
     def __call__(self, ve, vo):
-        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve, vo, self.mass_parameter)
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve, vo, self.mass_parameter, self.eodim)
 
 # create a boolean tensor that is True on even sites, with the specified space-time dimensions
 def evenmask(dims):

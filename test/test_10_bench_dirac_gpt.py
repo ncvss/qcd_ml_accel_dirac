@@ -41,36 +41,69 @@ try:
         # U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
         # v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
 
-        mask = qcd_ml_accel_dirac.evenmask(lat_dim)
+        emask = qcd_ml_accel_dirac.evenmask(lat_dim)
+        omask = torch.logical_not(emask)
         eo_dim = lat_dim[:]
         eo_dim[-1] //= 2
         eo_size = eo_dim[0]*eo_dim[1]*eo_dim[2]*eo_dim[3]
+        print("eodim", eo_dim)
 
-        ve = v[mask].reshape(eo_dim+[4,3])
-        vo = torch.roll(v,shifts=-1,dims=3)[mask].reshape(eo_dim+[4,3])
-        Ue = U[:,mask].reshape([4]+eo_dim+[3,3])
-        Uo = torch.roll(U,shifts=-1,dims=4)[:,mask].reshape([4]+eo_dim+[3,3])
+        ve = v[emask]
+        vo = v[omask]
+        Ue = U[:,emask]
+        Uo = U[:,omask]
+
+        # Ut = torch.sum(U,(5,6))
+        # Uto = Ut[:,omask].reshape([4,8,8,8,8])
+        # print(Ut[0,0,2])
+        # print(Uto[0,0,2])
+        # sieht so aus wie erwartet
+
+        # ve = v[mask].reshape(eo_dim+[4,3])
+        # vo = torch.roll(v,shifts=-1,dims=3)[mask].reshape(eo_dim+[4,3])
+        # Ue = U[:,mask].reshape([4]+eo_dim+[3,3])
+        # Uo = torch.roll(U,shifts=-1,dims=4)[:,mask].reshape([4]+eo_dim+[3,3])
 
         print("shapes of Ue and ve:")
         print(Ue.shape)
         print(ve.shape)
 
-        v_back = torch.zeros_like(v)
-        v_back[mask] = vo.reshape([eo_size,4,3])
-        v_back = torch.roll(v_back,1,3)
-        v_back[mask] = ve.reshape([eo_size,4,3])
+        # v_back = torch.zeros_like(v)
+        # v_back[mask] = vo.reshape([eo_size,4,3])
+        # v_back = torch.roll(v_back,1,3)
+        # v_back[mask] = ve.reshape([eo_size,4,3])
 
-        print("the back conversion worked:", torch.allclose(v,v_back))
-        
+        # print("the back conversion worked:", torch.allclose(v,v_back))
 
         dw_py = qcd_ml.qcd.dirac.dirac_wilson(U,mass)
         dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
-        dw_eo = qcd_ml_accel_dirac.dirac_wilson_eo(Ue,Uo,mass)
+        dw_eo = qcd_ml_accel_dirac.dirac_wilson_eo(Ue,Uo,mass,eo_dim)
 
         dwv_py = dw_py(v)
         dwv_cpp = dw_cpp(v)
         dst_g = dw_g(v_g)
         dwv_eo = dw_eo(ve,vo)
+
+        dst_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(dst_g))
+
+        dwv_eo_back = torch.zeros_like(dwv_py)
+        dwv_eo_back[omask] = dwv_eo[1]
+        #dwv_eo_back = torch.roll(dwv_eo_back,1,3)
+        dwv_eo_back[emask] = dwv_eo[0]
+        print(dwv_eo_back.shape)
+        print(dwv_eo_back[0,3,0,0])
+        print(dwv_py[0,3,0,0])
+        incorr = torch.tensor(torch.sum(torch.abs(dwv_eo_back-dwv_py),(4,5))>0.01,dtype=torch.int)
+        # print(incorr[0,0])
+        # print(incorr[1,1])
+        # print(incorr[2,3])
+        print(torch.sum(incorr))
+        # exakt 1/4 der Matrizen ist falsch
+        # genau dann falsch, wenn x+y+z odd und t odd
+
+        assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch),
+                    torch.allclose(dwv_py,dwv_eo_back)])
+
 
         for _ in range(n_warmup):
             dwv_py = dw_py(v)
@@ -144,9 +177,10 @@ try:
         dst_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(dst_g))
 
         dwv_eo_back = torch.zeros_like(dwv_py)
-        dwv_eo_back[mask] = dwv_eo[1]
-        dwv_eo_back = torch.roll(dwv_eo_back,1,3)
-        dwv_eo_back[mask] = dwv_eo[0]
+        dwv_eo_back[omask] = dwv_eo[1]
+        #dwv_eo_back = torch.roll(dwv_eo_back,1,3)
+        dwv_eo_back[emask] = dwv_eo[0]
+        
 
         assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch),
                     torch.allclose(dwv_py,dwv_eo_back)])
