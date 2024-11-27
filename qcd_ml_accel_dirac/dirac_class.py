@@ -45,26 +45,43 @@ class dirac_wilson:
 
     def __call__(self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
-    
 
-class dirac_wilson_eo:
-    """
-    Dirac Wilson operator with gauge config U on even-odd checkerboard.
-    """
-    def __init__(self, Ue, Uo, mass_parameter, eodim):
-        self.Ue = Ue
-        self.Uo = Uo
-        self.mass_parameter = mass_parameter
-        self.eodim = eodim
-
-    def __call__(self, ve, vo):
-        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve, vo, self.mass_parameter, self.eodim)
 
 # create a boolean tensor that is True on even sites, with the specified space-time dimensions
 def evenmask(dims):
     return torch.tensor([[[[(x+y+z+t)%2 == 0 for t in range(dims[3])] for z in range(dims[2])]
       for y in range(dims[1])] for x in range(dims[0])], dtype=torch.bool)
+
+class dirac_wilson_eo:
+    """
+    Dirac Wilson operator with gauge config U on even-odd checkerboard.
+    """
+    def __init__(self, U, mass_parameter):
+        # the dimensions have to have even sizes for the algorithm to work
+        dims = list(U.shape)[1:5]
+        for d in dims:
+            if d%2 != 0:
+                raise Exception("Grid has to have even number of points in each dimension")
         
+        # choose the even and odd sites in the gauge fields
+        emask = torch.tensor([[[[(x+y+z+t)%2 == 0 for t in range(dims[3])] for z in range(dims[2])]
+                            for y in range(dims[1])] for x in range(dims[0])], dtype=torch.bool)
+        omask = torch.logical_not(emask)
+
+        eodim = dims[:]
+        eodim[-1] //= 2
+        self.Ue = U[:,emask]
+        self.Uo = U[:,omask]
+        self.mass_parameter = mass_parameter
+        self.eodim = eodim
+        self.emask = emask
+        self.omask = omask
+
+    def __call__(self, ve,vo):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve,vo, self.mass_parameter, self.eodim)
+
+
+
 # Dirac Wilson operator with clover term improvement, using C++
 class dirac_wilson_clover:
     """

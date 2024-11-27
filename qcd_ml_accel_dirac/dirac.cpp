@@ -182,7 +182,6 @@ at::Tensor dw_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass){
 }
 
 
-// As it seems right now, I do not know how to make this function work
 
 at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                        const at::Tensor& ve, const at::Tensor& vo,
@@ -200,30 +199,13 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
     //std::cout << "the sizes of vector, gauge, and return:" << std::endl;
 
     // size of space-time, spin and gauge axes
-    int64_t v_size [6] = {eodim[0],eodim[1],eodim[2],eodim[3],ve.size(1),ve.size(2)};
-    //std::cout << "v_size: " << v_size[0] << v_size[1] << v_size[2] << v_size[3] << v_size[4] << v_size[5] << std::endl;
-    // for (int64_t sj = 0; sj < 6; sj++){
-    //     v_size[sj] = ve.size(sj);
-    //     //std::cout << v_size[sj];
-    // }
-    // //std::cout << std::endl;
-    int64_t u_size [7] = {Ue.size(0),eodim[0],eodim[1],eodim[2],eodim[3],Ue.size(2),Ue.size(3)};
-    //std::cout << "u_size: " << u_size[0] << u_size[1] << u_size[2] << u_size[3] << u_size[4] << u_size[5] << u_size[6] << std::endl;
-    // for (int64_t sj = 0; sj < 7; sj++){
-    //     u_size[sj] = Ue.size(sj);
-    //     //std::cout << u_size[sj];
-    // }
-    // //std::cout << std::endl;
+    int64_t v_size [6] = {eodim[0], eodim[1], eodim[2], eodim[3], ve.size(1), ve.size(2)};
+
+    // number of different fields and size of space-time and gauge axes
+    int64_t u_size [7] = {Ue.size(0), eodim[0], eodim[1], eodim[2], eodim[3], Ue.size(2), Ue.size(3)};
+
     // size of the result tensor, which is even and odd stacked
-    int64_t r_size [7] = {2,eodim[0],eodim[1],eodim[2],eodim[3],v_size[4],v_size[5]};
-    //std::cout << "r_size: " << r_size[0] << r_size[1] << r_size[2] << r_size[3] << r_size[4] << r_size[5] << r_size[6] << std::endl;
-    // r_size[0] = 2;
-    // //std::cout << r_size[0];
-    // for (int64_t sj = 0; sj < 6; sj++){
-    //     r_size[sj+1] = v_size[sj];
-    //     //std::cout << r_size[sj+1];
-    // }
-    // //std::cout << std::endl;
+    int64_t r_size [7] = {2,eodim[0], eodim[1], eodim[2], eodim[3], v_size[4], v_size[5]};
 
     // strides of the memory blocks
     int64_t vstride [6];
@@ -231,11 +213,13 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
     for (int64_t sj = 4; sj >= 0; sj--){
         vstride[sj] = vstride[sj+1] * v_size[sj+1];
     }
+    // strides of the memory blocks
     int64_t ustride [7];
     ustride[6] = 1;
     for (int64_t sj = 5; sj >= 0; sj--){
         ustride[sj] = ustride[sj+1] * u_size[sj+1];
     }
+    // strides of the memory blocks
     int64_t rstride [7];
     rstride[6] = 1;
     for (int64_t sj = 5; sj >= 0; sj--){
@@ -251,22 +235,13 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
     const c10::complex<double>* vo_ptr = vo.const_data_ptr<c10::complex<double>>();
     c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
 
-    //return result;
 
-    // // shift in t direction from a +-1 in z direction
-    // int64_t * ztse = new int64_t [v_size[2]];
-    // int64_t * ztso = new int64_t [v_size[2]];
-    // for (int64_t zi = 0; zi < v_size[2]; zi++){
-    //     ztse[zi] = (v_size[3]-1) * ((zi+1)%2);
-    //     ztso[zi] = zi%2;
-    // }
-
-    // variable for the additional shift in t direction
+    // teo is a variable for the additional shift in t direction
     // teo=0 if x+y+z is even on the even grid, or x+y+z is odd on the odd grid
     // teo=1 in other cases
     // the shift t+1 on the base grid is t'+teo on the eo grid
     // the shift t-1 on the base grid is t'-1+teo on the eo grid
-    int64_t teo = 0;
+    // to parallelise this, we have to define teo inside the x loop
 
 
     // iterate over the whole field
@@ -278,9 +253,9 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
     // the following is only the computation of even sites
 
     // parallelisation
-    // at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
-    // for (int64_t x = start; x < end; x++){
-    for (int64_t x = 0; x < v_size[0]; x++){
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
+    for (int64_t x = start; x < end; x++){
+        int64_t teo = x%2;
         for (int64_t y = 0; y < v_size[1]; y++){
             for (int64_t z = 0; z < v_size[2]; z++){
                 for (int64_t t = 0; t < v_size[3]; t++){
@@ -333,7 +308,6 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                     }
 
                     // mu = 2 term
-                    // formerly: for this term, the shifts in z also cause a shift in t
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
@@ -357,8 +331,6 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                     // for this term, because the even and odd v are shrinked in t,
                     // we have to access different points than before:
                     // the first even and odd site in each t row have the same address on their grids
-
-                    // before: the odd point following an even point in t direction has the same address
                     for (int64_t g = 0; g < 3; g++){
                         for (int64_t gi = 0; gi < 3; gi++){
                             for (int64_t s = 0; s < 4; s++){
@@ -384,17 +356,16 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
             }
             teo = (teo+1)%2;
         }
-        teo = (teo+1)%2;
     }
-    //});
+    });
 
     // now the odd term
-    teo = 1;
+    // teo again defined in the x loop
 
     // parallelisation
-    // at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
-    // for (int64_t x = start; x < end; x++){
-    for (int64_t x = 0; x < v_size[0]; x++){
+    at::parallel_for(0, v_size[0], 1, [&](int64_t start, int64_t end){
+    for (int64_t x = start; x < end; x++){
+        int64_t teo = (x+1)%2;
         for (int64_t y = 0; y < v_size[1]; y++){
             for (int64_t z = 0; z < v_size[2]; z++){
                 for (int64_t t = 0; t < v_size[3]; t++){
@@ -467,7 +438,6 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                     }
 
                     // mu = 3 term
-
                     // for this term, because the even and odd v are shrinked in t,
                     // we have to access different points than before
                     // the odd point following an even point in t direction has the same address
@@ -496,12 +466,9 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
             }
             teo = (teo+1)%2;
         }
-        teo = (teo+1)%2;
     }
-    //});
+    });
 
-    // delete [] ztse;
-    // delete [] ztso;
 
     return result;
 }
