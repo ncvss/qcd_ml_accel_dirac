@@ -1,3 +1,4 @@
-torch == 2.4.1
-numpy
-qcd_ml @ git+https://github.com/daknuett/qcd_ml@main
+# These requirements need a specific url to each of them and thus cannot be installed with only one file
+# torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cpu
+# numpy
+# qcd_ml @ git+https://github.com/daknuett/qcd_ml@main

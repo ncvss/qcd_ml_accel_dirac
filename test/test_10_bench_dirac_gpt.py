@@ -6,6 +6,7 @@ import pytest
 
 import qcd_ml_accel_dirac
 import qcd_ml
+import qcd_ml_accel_dirac.compat
 
 
 try:
@@ -36,8 +37,8 @@ try:
         dw_g = g.qcd.fermion.wilson_clover(U_g, {"kappa":kappa,"csw_r":0.0,"csw_t":0.0,"xi_0":1,"nu":1,
                                             "isAnisotropic":False,"boundary_phases":[1.0,1.0,1.0,1.0],}, )
 
-        U = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(U_g))
-        v = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(v_g))
+        U = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(U_g))
+        v = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(v_g))
         # U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
         # v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
         
@@ -109,7 +110,7 @@ try:
             print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
             print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
             
-        dst_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(dst_g))
+        dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
         assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch)])
     
 
@@ -140,8 +141,8 @@ try:
         dwc_g = g.qcd.fermion.wilson_clover(U_g, {"kappa":kappa,"csw_r":csw,"csw_t":csw,"xi_0":1,"nu":1,
                                             "isAnisotropic":False,"boundary_phases":[1.0,1.0,1.0,1.0],}, )
 
-        U = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(U_g))
-        v = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(v_g))
+        U = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(U_g))
+        v = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(v_g))
         
 
         dwc_py = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
@@ -211,7 +212,7 @@ try:
             print(f"throughput : [GiB/s] {throughput_GiBs: .3f}")
             print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
             
-        dst_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(dst_g))
+        dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
         assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch)])
 
 except ImportError:

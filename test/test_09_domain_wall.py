@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import torch
 import qcd_ml_accel_dirac
+import qcd_ml_accel_dirac.compat
 
 try:
     import gpt as g # type: ignore
@@ -29,10 +30,10 @@ try:
 
         res = qm(src)
 
-        res_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(res))
+        res_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(res))
 
-        src_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(src))
-        U_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(U))
+        src_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(src))
+        U_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(U))
 
         qm_cpp = qcd_ml_accel_dirac.domain_wall_dirac(U_torch,m,m5)
         got = qm_cpp(src_torch)

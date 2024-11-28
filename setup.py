@@ -27,7 +27,7 @@ def get_extensions():
     }
 
     this_dir = os.path.dirname(os.path.curdir)
-    extensions_dir = os.path.join(this_dir, library_name)
+    extensions_dir = os.path.join(this_dir, library_name, "csrc")
     sources = list(glob.glob(os.path.join(extensions_dir, "*.cpp")))
 
     ext_modules = [
@@ -43,7 +43,7 @@ def get_extensions():
 
 setup(
     name=library_name,
-    version="0.0.4",
+    version="0.0.5",
     packages=find_packages(),
     ext_modules=get_extensions(),
     cmdclass={"build_ext": BuildExtension},
