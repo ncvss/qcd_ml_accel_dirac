@@ -2,10 +2,11 @@ import pytest
 import numpy as np
 import torch
 import qcd_ml_accel_dirac
-import qcd_ml_accel_dirac.compat
+
 
 try:
     import gpt as g # type: ignore
+    import qcd_ml_accel_dirac.compat
 
     def test_domain_wall():
         rng = g.random("test")

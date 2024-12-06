@@ -2,10 +2,10 @@ import torch
 import numpy as np
 import pytest
 
-from qcd_ml_accel_dirac.compat import lattice_to_array, array_to_lattice, array_to_lattice_list
 
 try:
     import gpt as g # type: ignore
+    from qcd_ml_accel_dirac.compat import lattice_to_array, array_to_lattice, array_to_lattice_list
 
     def test_conversion_gpt_torch_gpt():
         rng = g.random("convert")

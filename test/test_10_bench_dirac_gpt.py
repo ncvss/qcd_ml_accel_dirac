@@ -6,11 +6,12 @@ import pytest
 
 import qcd_ml_accel_dirac
 import qcd_ml
-import qcd_ml_accel_dirac.compat
+
 
 
 try:
     import gpt as g # type: ignore
+    import qcd_ml_accel_dirac.compat
 
     def test_throughput_wilson_gpt():
         print()
