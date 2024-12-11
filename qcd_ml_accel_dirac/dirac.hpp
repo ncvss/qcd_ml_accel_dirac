@@ -33,6 +33,23 @@ at::Tensor dw_call_eo (const at::Tensor& Ue, const at::Tensor& Uo,
                        const at::Tensor& ve, const at::Tensor& vo,
                        double mass, std::vector<int64_t> eodim);
 
+/**
+ * @brief Apply the Dirac Wilson operator with a different algorithm.
+ *        The grid points are accessed with one flattened index of length vol=Lx*Ly*Lt*Lt,
+ *        this allows for both flattened and multi-dimensional input grids.
+ *        The shifts are taken from a lookup table.
+ *        Also, the axis ordering is different.
+ *        
+ * @param U gauge fields, (vol,4,3,3)-tensor (xyzt,mu,g,gi)
+ * @param v vector fields, (vol,3,4)-tensor (xyzt,g,s)
+ * @param hops lookup table that contains a list [-x,+x,-y,+y,-z,+z,-t,+t] at each grid site
+ *             whose entries are the flattened indices of the site that is reached after
+ *             taking that step from the current site
+ * @param mass mass parameter
+ * @return at::Tensor 
+ */
+at::Tensor dw_call_lookup_cpu (const at::Tensor& U, const at::Tensor& v, const at::Tensor& hops, double mass);
+
 
 /**
  * @brief Apply the dirac wilson clover operator to a vector field.

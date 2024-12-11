@@ -38,13 +38,16 @@ try:
 
         U = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(U_g))
         v = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(v_g))
-        # U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
-        # v = torch.randn(lat_dim+[4,3],dtype=torch.cdouble)
-
 
         dw_py = qcd_ml.qcd.dirac.dirac_wilson(U,mass)
         dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
         dw_eo = qcd_ml_accel_dirac.dirac_wilson_eo(U,mass)
+
+        U_l = torch.permute(U,(1,2,3,4,0,5,6,)).contiguous()
+        v_l = torch.permute(v,(0,1,2,3,5,4)).contiguous()
+
+        dw_l = qcd_ml_accel_dirac.dirac_wilson_lookup(U_l,mass)
+        #dw_l = lambda v: v
 
         emask = dw_eo.emask
         omask = dw_eo.omask
@@ -56,6 +59,11 @@ try:
         dwv_cpp = dw_cpp(v)
         dst_g = dw_g(v_g)
         dwv_eo = dw_eo(ve,vo)
+        dwv_l = dw_l(v_l)
+
+        print("lookup data size:", dw_l.hop_inds.element_size()*dw_l.hop_inds.nelement()/(1024**2),"MiB")
+
+        #dw_l = lambda v: dwv_l
 
         dst_torch = torch.tensor(qcd_ml_accel_dirac.lattice_to_array(dst_g))
 
@@ -64,18 +72,20 @@ try:
             dwv_cpp = dw_cpp(v)
             dst_g = dw_g(v_g)
             dwv_eo = dw_eo(ve,vo)
+            dwv_l = dw_l(v_l)
 
-        results_py = np.zeros(n_measurements)
+        #results_py = np.zeros(n_measurements)
         results_cpp = np.zeros(n_measurements)
         results_g = np.zeros(n_measurements)
         results_eo = np.zeros(n_measurements)
+        results_l = np.zeros(n_measurements)
         bias = np.zeros(n_measurements)
 
         for i in range(n_measurements):
-            start = time.perf_counter_ns()
-            dwv_py = dw_py(v)
-            stop = time.perf_counter_ns()
-            results_py[i] = stop - start
+            # start = time.perf_counter_ns()
+            # dwv_py = dw_py(v)
+            # stop = time.perf_counter_ns()
+            # results_py[i] = stop - start
 
             start = time.perf_counter_ns()
             dwv_cpp = dw_cpp(v)
@@ -93,19 +103,26 @@ try:
             results_eo[i] = stop - start
 
             start = time.perf_counter_ns()
+            dwv_l = dw_l(v_l)
+            stop = time.perf_counter_ns()
+            results_l[i] = stop - start
+
+            start = time.perf_counter_ns()
             stop = time.perf_counter_ns()
             bias[i] = stop - start
 
 
-        results_py_sorted = np.sort(results_py)[:(n_measurements // 5)]
+        #results_py_sorted = np.sort(results_py)[:(n_measurements // 5)]
         results_cpp_sorted = np.sort(results_cpp)[:(n_measurements // 5)]
         results_g_sorted = np.sort(results_g)[:(n_measurements // 5)]
         results_eo_sorted = np.sort(results_eo)[:(n_measurements // 5)]
+        results_l_sorted = np.sort(results_l)[:(n_measurements // 5)]
 
 
-        for pack,results_sorted in [["qcd_ml",results_py_sorted],
+        for pack,results_sorted in [#["qcd_ml",results_py_sorted],
                                     ["qcd_ml_accel_dirac",results_cpp_sorted],
-                                    ["gpt", results_g_sorted],["even-odd", results_eo_sorted]]:
+                                    ["gpt", results_g_sorted],["even-odd", results_eo_sorted],
+                                    ["lookup", results_l_sorted]]:
             print("-----")
             print(pack)
             print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
@@ -133,9 +150,11 @@ try:
         dwv_eo_back = torch.zeros_like(dwv_py)
         dwv_eo_back[omask] = dwv_eo[1]
         dwv_eo_back[emask] = dwv_eo[0]
+
+        dwv_l_back = torch.permute(dwv_l,(0,1,2,3,5,4))
         
         assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch),
-                    torch.allclose(dwv_py,dwv_eo_back)])
+                    torch.allclose(dwv_py,dwv_eo_back),torch.allclose(dwv_py,dwv_l_back)])
     
 
     # def test_throughput_wilson_clover_gpt():

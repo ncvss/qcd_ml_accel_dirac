@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 
 # path buffer only for intermediate computations
@@ -77,9 +78,52 @@ class dirac_wilson_eo:
         self.emask = emask
         self.omask = omask
 
-    def __call__(self, ve,vo):
-        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve,vo, self.mass_parameter, self.eodim)
+    def __call__(self, ve, vo):
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_eo(self.Ue, self.Uo, ve, vo, self.mass_parameter, self.eodim)
 
+
+class dirac_wilson_lookup:
+    """
+    Dirac Wilson operator with gauge config U that creates a lookup table for the hops.
+    Also, it assumes spin as last dimension of v and link direction after space-time in U.
+    """
+    def __init__(self, U, mass_parameter):
+        if isinstance(U, list):
+            U = torch.stack(U)
+        #self.U = U.transpose(0,-1).contiguous()
+        self.U = U
+        assert tuple(U.shape[4:7]) == (4,3,3,)
+        self.mass_parameter = mass_parameter
+
+        grid = U.shape[0:4]
+        #print("grid", grid, "  size", 8*8*8*16)
+        strides = torch.tensor([grid[1]*grid[2]*grid[3], grid[2]*grid[3], grid[3], 1], dtype=torch.int64)
+        npind = np.indices(grid, sparse=False)
+        #print("npind shape,")
+        indices = torch.tensor(npind, dtype=torch.int64).permute((1,2,3,4,0,)).flatten(start_dim=0, end_dim=3)
+        #print("indices shape:", indices.shape)
+
+        hop_inds = []
+        for coord in range(4):
+            # index after a negative step in coord direction
+            minus_hop_ind = torch.clone(indices)
+            minus_hop_ind[:,coord] = torch.remainder(indices[:,coord]-1+grid[coord], grid[coord])
+            # index after a positive step in coord direction
+            plus_hop_ind = torch.clone(indices)
+            plus_hop_ind[:,coord] = torch.remainder(indices[:,coord]+1, grid[coord])
+            # compute flattened index by dot product with strides
+            hop_inds.append(torch.matmul(minus_hop_ind, strides))
+            hop_inds.append(torch.matmul(plus_hop_ind, strides))
+        self.hop_inds = torch.stack(hop_inds, dim=1).contiguous()
+        print(self.hop_inds[0])
+        #print("hop ind shape:", self.hop_inds.shape)
+        #print("some values from hop inds:", self.hop_inds[1020:1030])
+
+    def __call__(self, v):
+        #assert v.shape[0:3] == self.U.shape[0:3]
+        #assert tuple(v.shape[4:6]) == (3,4,)
+        return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_lookup(self.U, v, self.hop_inds, self.mass_parameter)
+        
 
 
 # Dirac Wilson operator with clover term improvement, using C++
