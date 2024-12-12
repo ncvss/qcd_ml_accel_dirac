@@ -97,10 +97,10 @@ class dirac_wilson_lookup:
 
         grid = U.shape[0:4]
         #print("grid", grid, "  size", 8*8*8*16)
-        strides = torch.tensor([grid[1]*grid[2]*grid[3], grid[2]*grid[3], grid[3], 1], dtype=torch.int64)
+        strides = torch.tensor([grid[1]*grid[2]*grid[3], grid[2]*grid[3], grid[3], 1], dtype=torch.int32)
         npind = np.indices(grid, sparse=False)
         #print("npind shape,")
-        indices = torch.tensor(npind, dtype=torch.int64).permute((1,2,3,4,0,)).flatten(start_dim=0, end_dim=3)
+        indices = torch.tensor(npind, dtype=torch.int32).permute((1,2,3,4,0,)).flatten(start_dim=0, end_dim=3)
         #print("indices shape:", indices.shape)
 
         hop_inds = []
@@ -115,7 +115,7 @@ class dirac_wilson_lookup:
             hop_inds.append(torch.matmul(minus_hop_ind, strides))
             hop_inds.append(torch.matmul(plus_hop_ind, strides))
         self.hop_inds = torch.stack(hop_inds, dim=1).contiguous()
-        print(self.hop_inds[0])
+        #print(self.hop_inds[0])
         #print("hop ind shape:", self.hop_inds.shape)
         #print("some values from hop inds:", self.hop_inds[1020:1030])
 

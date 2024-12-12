@@ -17,10 +17,10 @@ try:
         print("running on host", socket.gethostname())
         print(f'Machine has {num_threads} threads')
 
-        n_measurements = 1000
+        n_measurements = 200
         n_warmup = 10
 
-        lat_dim = [8,8,8,16]
+        lat_dim = [16,16,16,32]
         print("lattice dimensions:",lat_dim)
 
         rng = g.random("test")

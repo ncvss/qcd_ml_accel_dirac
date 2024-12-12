@@ -13,15 +13,15 @@
 
 namespace qcd_ml_accel_dirac{
 
-inline int64_t uix (int64_t t, int64_t mu, int64_t g, int64_t gi){
+inline __attribute__((always_inline)) int64_t uix (int64_t t, int64_t mu, int64_t g, int64_t gi){
     return t*36 + mu*9 + g*3 + gi;
 }
 
-inline int64_t vix (int64_t t, int64_t g, int64_t s){
+inline __attribute__((always_inline)) int64_t vix (int64_t t, int64_t g, int64_t s){
     return t*12 + g*4 + s;
 }
 
-inline int64_t hix (int64_t t, int64_t h, int64_t d){
+inline __attribute__((always_inline)) int64_t hix (int64_t t, int64_t h, int64_t d){
     return t*8 + h*2 + d;
 }
 
@@ -36,16 +36,17 @@ at::Tensor dw_call_lookup_cpu (const at::Tensor& U, const at::Tensor& v, const a
     int64_t vol = hops.size(0);
     // std::cout << "volume: " << vol << std::endl;
 
-    at::Tensor result = torch::zeros(v.sizes(), v.options());
+    at::Tensor result = torch::empty(v.sizes(), v.options());
 
     const c10::complex<double>* U_ptr = U.const_data_ptr<c10::complex<double>>();
     const c10::complex<double>* v_ptr = v.const_data_ptr<c10::complex<double>>();
-    const int64_t* h_ptr = hops.const_data_ptr<int64_t>();
+    const int32_t* h_ptr = hops.const_data_ptr<int32_t>();
     c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
     //return result;
 
-#pragma omp parallel for
-    for (int64_t t = 0; t < vol; t++){
+//#pragma omp parallel for
+    at::parallel_for(0, vol, 1, [&](int64_t start, int64_t end){
+    for (int64_t t = start; t < end; t++){
         // if (t==1){
         //     std::cout << "t worked" << std::endl;
         // }
@@ -83,6 +84,7 @@ at::Tensor dw_call_lookup_cpu (const at::Tensor& U, const at::Tensor& v, const a
             }
         }
     }
+    });
 
     return result;
 }
