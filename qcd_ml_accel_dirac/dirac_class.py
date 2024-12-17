@@ -123,6 +123,8 @@ class dirac_wilson_lookup:
         #assert v.shape[0:3] == self.U.shape[0:3]
         #assert tuple(v.shape[4:6]) == (3,4,)
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call_lookup(self.U, v, self.hop_inds, self.mass_parameter)
+    def write_call(self, v, out):
+        return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_unroll_write(self.U, v, out, self.hop_inds, self.mass_parameter)
         
 
 

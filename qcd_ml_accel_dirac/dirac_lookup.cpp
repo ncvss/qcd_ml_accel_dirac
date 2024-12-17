@@ -89,5 +89,76 @@ at::Tensor dw_call_lookup_cpu (const at::Tensor& U, const at::Tensor& v, const a
     return result;
 }
 
+// unroll gi sum and write to an existing tensor
+void dw_call_lookup_unroll_write (const at::Tensor& U, const at::Tensor& v,at::Tensor& result,
+                                  const at::Tensor& hops, double mass){
+
+    TORCH_CHECK(U.is_contiguous());
+    TORCH_CHECK(v.is_contiguous());
+    TORCH_CHECK(hops.is_contiguous());
+
+    // in this function, we use only the flattened space-time index!
+    // The indices for the input arrays are U[t,mu,g,gi] and v[t,g,s]
+
+    int vol = hops.size(0);
+
+    const c10::complex<double>* U_ptr = U.const_data_ptr<c10::complex<double>>();
+    const c10::complex<double>* v_ptr = v.const_data_ptr<c10::complex<double>>();
+    const int32_t* h_ptr = hops.const_data_ptr<int32_t>();
+    c10::complex<double>* res_ptr = result.mutable_data_ptr<c10::complex<double>>();
+
+
+//#pragma omp parallel for
+    at::parallel_for(0, vol, 1, [&](int64_t start, int64_t end){
+    for (int t = start; t < end; t++){
+
+        for (int g = 0; g < 3; g++){
+            for (int s = 0; s < 4; s++){
+                res_ptr[vix(t,g,s)] = (4.0 + mass) * v_ptr[vix(t,g,s)];
+            }
+        }
+        for (int mu = 0; mu < 4; mu++){
+            for (int g = 0; g < 3; g++){
+                    for (int s = 0; s < 4; s++){
+                        res_ptr[vix(t,g,s)] += (
+                            std::conj(U_ptr[uix(h_ptr[hix(t,mu,0)],mu,0,g)])
+                            * (
+                                -v_ptr[vix(h_ptr[hix(t,mu,0)],0,s)]
+                                -gamf[mu][s] * v_ptr[vix(h_ptr[hix(t,mu,0)],0,gamx[mu][s])]
+                            )
+                            + U_ptr[uix(t,mu,g,0)]
+                            * (
+                                -v_ptr[vix(h_ptr[hix(t,mu,1)],0,s)]
+                                +gamf[mu][s] * v_ptr[vix(h_ptr[hix(t,mu,1)],0,gamx[mu][s])]
+                            )
+                            + std::conj(U_ptr[uix(h_ptr[hix(t,mu,0)],mu,1,g)])
+                            * (
+                                -v_ptr[vix(h_ptr[hix(t,mu,0)],1,s)]
+                                -gamf[mu][s] * v_ptr[vix(h_ptr[hix(t,mu,0)],1,gamx[mu][s])]
+                            )
+                            + U_ptr[uix(t,mu,g,1)]
+                            * (
+                                -v_ptr[vix(h_ptr[hix(t,mu,1)],1,s)]
+                                +gamf[mu][s] * v_ptr[vix(h_ptr[hix(t,mu,1)],1,gamx[mu][s])]
+                            )
+                            + std::conj(U_ptr[uix(h_ptr[hix(t,mu,0)],mu,2,g)])
+                            * (
+                                -v_ptr[vix(h_ptr[hix(t,mu,0)],2,s)]
+                                -gamf[mu][s] * v_ptr[vix(h_ptr[hix(t,mu,0)],2,gamx[mu][s])]
+                            )
+                            + U_ptr[uix(t,mu,g,2)]
+                            * (
+                                -v_ptr[vix(h_ptr[hix(t,mu,1)],2,s)]
+                                +gamf[mu][s] * v_ptr[vix(h_ptr[hix(t,mu,1)],2,gamx[mu][s])]
+                            )
+                        ) * 0.5;
+                    }
+            }
+        }
+    }
+    });
+
+}
+
 
 }

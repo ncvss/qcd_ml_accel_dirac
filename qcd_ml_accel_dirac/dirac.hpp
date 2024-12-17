@@ -52,6 +52,19 @@ at::Tensor dw_call_lookup_cpu (const at::Tensor& U, const at::Tensor& v, const a
 
 
 /**
+ * @brief New version of the Dirac Wilson with lookup that writes to an existing tensor
+ * 
+ * @param U 
+ * @param v 
+ * @param result 
+ * @param hops 
+ * @param mass 
+ */
+void dw_call_lookup_unroll_write (const at::Tensor& U, const at::Tensor& v,at::Tensor& result,
+                                  const at::Tensor& hops, double mass);
+
+
+/**
  * @brief Apply the dirac wilson clover operator to a vector field.
  * 
  * @param U the gauge field configuration, (4,Lx,Ly,Lz,Lt,3,3)-tensor
