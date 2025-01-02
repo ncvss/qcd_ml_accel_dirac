@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 
 # path buffer only for intermediate computations
@@ -50,13 +51,33 @@ class dirac_wilson:
 class dirac_wilson_avx:
     """
     Dirac Wilson operator that creates a lookup table for the hops and uses AVX instructions.
+    The axes are U[x,y,z,t,mu,g,gi] and v[x,y,z,t,g,s].
     """
     def __init__(self, U, mass_parameter):
         self.U = U
+        assert tuple(U.shape[4:7]) == (4,3,3,)
         self.mass_parameter = mass_parameter
 
+        grid = U.shape[0:4]
+        strides = torch.tensor([grid[1]*grid[2]*grid[3], grid[2]*grid[3], grid[3], 1], dtype=torch.int32)
+        npind = np.indices(grid, sparse=False)
+        indices = torch.tensor(npind, dtype=torch.int32).permute((1,2,3,4,0,)).flatten(start_dim=0, end_dim=3)
+
+        hop_inds = []
+        for coord in range(4):
+            # index after a negative step in coord direction
+            minus_hop_ind = torch.clone(indices)
+            minus_hop_ind[:,coord] = torch.remainder(indices[:,coord]-1+grid[coord], grid[coord])
+            # index after a positive step in coord direction
+            plus_hop_ind = torch.clone(indices)
+            plus_hop_ind[:,coord] = torch.remainder(indices[:,coord]+1, grid[coord])
+            # compute flattened index by dot product with strides
+            hop_inds.append(torch.matmul(minus_hop_ind, strides))
+            hop_inds.append(torch.matmul(plus_hop_ind, strides))
+        self.hop_inds = torch.stack(hop_inds, dim=1).contiguous()
+
     def __call__(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d(self.U, v, self.hops, self.mass_parameter)
+        return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d(self.U, v, self.hop_inds, self.mass_parameter)
     
 
         

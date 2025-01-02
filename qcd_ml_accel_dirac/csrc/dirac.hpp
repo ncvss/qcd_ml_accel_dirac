@@ -39,4 +39,15 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
  */
 at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass, double m5);
 
+/**
+ * @brief apply the dirac wilson operator to a vector field, using AVX instructions
+ * 
+ * @param Ut the gauge field configuration, (Lx,Ly,Lz,Lt,4,3,3)-tensor
+ * @param vt the vector field, (Lx,Ly,Lz,Lt,3,4)-tensor
+ * @param hops lookup table for the indices for shifts by +1 and -1 in all directions
+ * @param mass the mass parameter
+ * @return at::Tensor 
+ */
+at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& Ut, const at::Tensor& vt, const at::Tensor& hops, double mass);
+
 }
