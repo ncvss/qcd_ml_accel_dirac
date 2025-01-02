@@ -45,6 +45,18 @@ class dirac_wilson:
 
     def __call__(self, v):
         return torch.ops.qcd_ml_accel_dirac.dirac_wilson_call(self.U, v, self.mass_parameter)
+
+
+class dirac_wilson_avx:
+    """
+    Dirac Wilson operator that creates a lookup table for the hops and uses AVX instructions.
+    """
+    def __init__(self, U, mass_parameter):
+        self.U = U
+        self.mass_parameter = mass_parameter
+
+    def __call__(self, v):
+        return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d(self.U, v, self.hops, self.mass_parameter)
     
 
         
