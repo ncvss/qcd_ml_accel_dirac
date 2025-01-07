@@ -4,6 +4,8 @@
 
 #include "complmath256d.hpp"
 
+namespace qcd_ml_accel_dirac{
+
 // gamma index for 2 packed spin components
 // s=0 is for the spin components 0 and 1, s=2 for th spin components 2 and 3
 static const int gamx_pd [3] = {2, 0, 0};
@@ -56,33 +58,34 @@ inline __attribute__((always_inline)) int gixd (int mu, int s){
 
 
 
-at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& Ut, const at::Tensor& vt,
-                                    const at::Tensor& hops, double mass){
+at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+                                    const at::Tensor& hops_tensor, double mass){
 
-    TORCH_CHECK(vt.dim() == 6);
-    TORCH_CHECK(Ut.size(0) == vt.size(0));
-    TORCH_CHECK(Ut.size(1) == vt.size(1));
-    TORCH_CHECK(Ut.size(2) == vt.size(2));
-    TORCH_CHECK(Ut.size(3) == vt.size(3));
-    TORCH_CHECK(vt.size(4) == 3);
-    TORCH_CHECK(vt.size(5) == 4);
+    TORCH_CHECK(v_tensor.dim() == 6);
+    TORCH_CHECK(U_tensor.size(0) == v_tensor.size(0));
+    TORCH_CHECK(U_tensor.size(1) == v_tensor.size(1));
+    TORCH_CHECK(U_tensor.size(2) == v_tensor.size(2));
+    TORCH_CHECK(U_tensor.size(3) == v_tensor.size(3));
+    TORCH_CHECK(v_tensor.size(4) == 3);
+    TORCH_CHECK(v_tensor.size(5) == 4);
 
-    TORCH_CHECK(Ut.dtype() == at::kComplexDouble);
-    TORCH_CHECK(vt.dtype() == at::kComplexDouble);
+    TORCH_CHECK(U_tensor.dtype() == at::kComplexDouble);
+    TORCH_CHECK(v_tensor.dtype() == at::kComplexDouble);
 
-    TORCH_CHECK(Ut.is_contiguous());
-    TORCH_CHECK(vt.is_contiguous());
+    TORCH_CHECK(U_tensor.is_contiguous());
+    TORCH_CHECK(v_tensor.is_contiguous());
 
-    int vol = Ut.size(0) * Ut.size(1) * Ut.size(2) * Ut.size(3);
+    int vol = U_tensor.size(0) * U_tensor.size(1) * U_tensor.size(2) * U_tensor.size(3);
     
 
-    at::Tensor result_tensor = torch::empty(vt.sizes(), vt.options());
+    at::Tensor result_tensor = torch::empty(v_tensor.sizes(), v_tensor.options());
 
-    // TODO: check whether complex double data is actually stored as 2 doubles
-    // so that we can use this simple type conversion
-    const double* U = Ut.const_data_ptr<double>();
-    const double* v_ptr = vt.const_data_ptr<double>();
-    double* result = result_tensor.mutable_data_ptr<double>();
+    // we create a pointer to the complex tensor, then typecast it to double*
+    // this allows us to access the complex numbers as doubles in riri format
+    const double* U = (double*)U_tensor.const_data_ptr<c10::complex<double>>();
+    const double* v = (double*)v_tensor.const_data_ptr<c10::complex<double>>();
+    const int* hops = hops_tensor.const_data_ptr<int>();
+    double* result = (double*)result_tensor.mutable_data_ptr<c10::complex<double>>();
 
     // register for the mass prefactor
     __m256d massf_reg = _mm256_set1_pd(4.0 + mass);
@@ -122,7 +125,7 @@ at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& Ut, const at::Tensor& vt,
                     v_Hmum = _mm256_add_pd(v_Hmum, v_Hmum_gam);
 
                     // take Umu hop in negative mu, adjoint it, and multiply onto v sum
-                    v_Hmum = compl_scalarmemconj_vectorreg_mul(U+uixd(hops[hixd(t,mu,0)],mu,gi,g),v_Hmum);
+                    v_Hmum = compl_scalarmem_conj_vectorreg_mul(U+uixd(hops[hixd(t,mu,0)],mu,gi,g),v_Hmum);
 
 
                     // v hop in positive mu * gamma
@@ -177,7 +180,7 @@ at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& Ut, const at::Tensor& vt,
                     v_Hmum = _mm256_add_pd(v_Hmum, v_Hmum_gam);
 
                     // take Umu hop in negative mu, adjoint it, and multiply onto v sum
-                    v_Hmum = compl_scalarmemconj_vectorreg_mul(U+uixd(hops[hixd(t,mu,0)],mu,gi,g),v_Hmum);
+                    v_Hmum = compl_scalarmem_conj_vectorreg_mul(U+uixd(hops[hixd(t,mu,0)],mu,gi,g),v_Hmum);
 
 
                     // v hop in positive mu * gamma
@@ -230,7 +233,7 @@ at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& Ut, const at::Tensor& vt,
                         v_Hmum = _mm256_add_pd(v_Hmum, v_Hmum_gam);
 
                         // take Umu hop in negative mu, adjoint it, and multiply onto v sum
-                        v_Hmum = compl_scalarmemconj_vectorreg_mul(U+uixd(hops[hixd(t,mu,0)],mu,gi,g),v_Hmum);
+                        v_Hmum = compl_scalarmem_conj_vectorreg_mul(U+uixd(hops[hixd(t,mu,0)],mu,gi,g),v_Hmum);
 
 
                         // v hop in positive mu * gamma
@@ -267,3 +270,4 @@ at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& Ut, const at::Tensor& vt,
     return result_tensor;
 }
 
+}

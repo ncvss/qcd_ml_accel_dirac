@@ -31,7 +31,7 @@ inline __m256d compl_scalarmem_vectorreg_mul (const double * bp, __m256d a){
 inline __m256d compl_scalarmem_conj_vectorreg_mul (const double * bp, __m256d a){
     __m256d a_swap_reg = _mm256_permute_pd(a, 5); // a1i | a1r | a2i | a2r
     __m256d re_b_reg = _mm256_broadcast_sd(bp); // br | br | br | br
-    __m256d im_b_reg = _mm256_broadcast_pd(bp+1); // bi | bi | bi | bi
+    __m256d im_b_reg = _mm256_broadcast_sd(bp+1); // bi | bi | bi | bi
     __m256d im_b_mul_reg = _mm256_mul_pd(a_swap_reg, im_b_reg); // a1i*bi | a1r*bi | a2i*bi | a2r*bi
     __m256d res_reg = _mm256_fmsubadd_pd(a, re_b_reg, im_b_mul_reg);
                // a1r*br+a1i*bi | a1i*br-a1r*bi | a2r*br+a2i*bi | a2i*br-a2r*bi

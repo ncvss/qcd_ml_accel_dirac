@@ -19,6 +19,7 @@ def get_extensions():
         "cxx": [
             "-O3",
             "-fopenmp",
+            "-march=haswell",
         ],
         "nvcc": [
             "-O3",
