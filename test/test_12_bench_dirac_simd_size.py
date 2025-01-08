@@ -21,7 +21,7 @@ try:
         print(f'Machine has {num_threads} threads')
 
         lat_dims = [[4,4,4,4]]
-        for li in range(9):
+        for li in range(10):
             newdim = copy.copy(lat_dims[li])
             newdim[(li+3)%4] *= 2
             lat_dims.append(newdim)
@@ -41,8 +41,8 @@ try:
         thrptstdevs = {"avx":[], "gpt":[]}
 
         for lat_dim in lat_dims:
-            n_measurements = 1000
-            n_warmup = 10
+            n_measurements = 2000
+            n_warmup = 20
 
             #print("=====")
             print("testing lattice dimensions",lat_dim)
@@ -100,15 +100,19 @@ try:
             
             # size of the additional hop term lookup table (only for dw_avx)
             hop_size = dw_avx.hop_inds.element_size() * dw_avx.hop_inds.nelement()
+            hopdata = {"avx":hop_size, "gpt":0}
 
-            for pack,results_sorted,h in [["gpt", results_g_sorted, 0],
-                                          ["avx", results_avx_sorted, hop_size]]:
+            for pack,results_sorted,res in [["gpt", results_g_sorted, results_g],
+                                          ["avx", results_avx_sorted, results_avx]]:
                 
-                data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement() + h
+                data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement() + hopdata[pack]
                 data_size_MiB = data_size / 1024**2
 
                 throughput = data_size / (results_sorted / 1000**3)
                 throughput_GiBs = throughput / 1024 ** 3
+
+                throughput_std = data_size / (res / 1000**3)
+                throughput_GiBs_std = throughput_std / 1024 ** 3
 
                 throughput_peak = data_size / (results_sorted[0] / 1000**3)
                 throughput_peak_GiBs = throughput_peak / 1024 ** 3
@@ -130,9 +134,9 @@ try:
 
 
                 meantimes[pack].append(np.mean(results_sorted) / 1000)
-                timestdevs[pack].append((np.std(results_sorted) + np.mean(bias)) / 1000)
+                timestdevs[pack].append((np.std(res) + np.mean(bias)) / 1000)
                 meanthroughputs[pack].append(np.mean(throughput_GiBs))
-                thrptstdevs[pack].append(np.std(throughput_GiBs))
+                thrptstdevs[pack].append(np.std(throughput_GiBs_std))
     
                 
             dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
