@@ -50,8 +50,14 @@ inline __m256d compl_scalarmem_conj_vectorreg_mul (const double * bp, __m256d a)
  */
 inline __m256d compl_vectorreg_pointwise_mul (__m256d a, __m256d b){
     __m256d a_swap_reg = _mm256_permute_pd(a, 5); // a1i | a1r | a2i | a2r
-    __m256d re_b_reg = _mm256_permute_pd(b, 0); // b1r | b1r | b2r | b2r
-    __m256d im_b_reg = _mm256_permute_pd(b, 15); // b1i | b1i | b2i | b2i
+
+    // the following 2 operations can be done with
+    // _mm256_permute_pd, _mm256_movedup_pd or _mm256_shuffle_pd
+    // Grid uses movedup and shuffle
+    // shuffle has the lowest CPI and equal latency, thus it should be used?
+    __m256d re_b_reg = _mm256_shuffle_pd(b, b, 0); // b1r | b1r | b2r | b2r
+    __m256d im_b_reg = _mm256_shuffle_pd(b, b, 15); // b1i | b1i | b2i | b2i
+    
     __m256d im_b_mul_reg = _mm256_mul_pd(a_swap_reg, im_b_reg); // a1i*b1i | a1r*b1i | a2i*b2i | a2r*b2i
     __m256d res_reg = _mm256_fmaddsub_pd(a, re_b_reg, im_b_mul_reg);
                // a1r*b1r-a1i*b1i | a1i*b1r+a1r*b1i | a2r*b2r-a2i*b2i | a2i*b2r+a2r*b2i

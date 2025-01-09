@@ -26,23 +26,27 @@ try:
             newdim[(li+3)%4] *= 2
             lat_dims.append(newdim)
         
-        print("lattice_dimensions_used = ", lat_dims)
+        vols = [l[0]*l[1]*l[2]*l[3] for l in lat_dims]
 
         mass = -0.5
         print("mass parameter =",mass)
+
+        n_measurements = 5000
+        n_warmup = 50
+        print("number of time measurements =", n_measurements)
 
         check_correct = []
 
         rng = g.random("sizetest")
 
-        meantimes = {"avx":[], "gpt":[]}
-        timestdevs = {"avx":[], "gpt":[]}
-        meanthroughputs = {"avx":[], "gpt":[]}
-        thrptstdevs = {"avx":[], "gpt":[]}
+        time_means_best = {"avx":[], "gpt":[]}
+        time_stdevs_best = {"avx":[], "gpt":[]}
+        time_stdevs_all = {"avx":[], "gpt":[]}
+        thrpt_means_best = {"avx":[], "gpt":[]}
+        thrpt_stdevs_best = {"avx":[], "gpt":[]}
+        thrpt_stdevs_all = {"avx":[], "gpt":[]}
 
         for lat_dim in lat_dims:
-            n_measurements = 2000
-            n_warmup = 20
 
             #print("=====")
             print("testing lattice dimensions",lat_dim)
@@ -108,11 +112,11 @@ try:
                 data_size = v.element_size() * v.nelement() * 2 + U.element_size() * U.nelement() + hopdata[pack]
                 data_size_MiB = data_size / 1024**2
 
-                throughput = data_size / (results_sorted / 1000**3)
-                throughput_GiBs = throughput / 1024 ** 3
+                throughput_best = data_size / (results_sorted / 1000**3)
+                throughput_GiBs_best = throughput_best / 1024 ** 3
 
-                throughput_std = data_size / (res / 1000**3)
-                throughput_GiBs_std = throughput_std / 1024 ** 3
+                throughput_all = data_size / (res / 1000**3)
+                throughput_GiBs_all = throughput_all / 1024 ** 3
 
                 throughput_peak = data_size / (results_sorted[0] / 1000**3)
                 throughput_peak_GiBs = throughput_peak / 1024 ** 3
@@ -133,10 +137,12 @@ try:
                 # print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
 
 
-                meantimes[pack].append(np.mean(results_sorted) / 1000)
-                timestdevs[pack].append((np.std(res) + np.mean(bias)) / 1000)
-                meanthroughputs[pack].append(np.mean(throughput_GiBs))
-                thrptstdevs[pack].append(np.std(throughput_GiBs_std))
+                time_means_best[pack].append(np.mean(results_sorted) / 1000)
+                time_stdevs_all[pack].append((np.std(res) + np.mean(bias)) / 1000)
+                time_stdevs_best[pack].append((np.std(results_sorted) + np.mean(bias)) / 1000)
+                thrpt_means_best[pack].append(np.mean(throughput_GiBs_best))
+                thrpt_stdevs_all[pack].append(np.std(throughput_GiBs_all))
+                thrpt_stdevs_best[pack].append(np.std(throughput_GiBs_best))
     
                 
             dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
@@ -144,14 +150,20 @@ try:
             check_correct.append(torch.allclose(dwv_py,dwv_avx_old))
             check_correct.append(torch.allclose(dwv_py,dst_torch))
 
-        print("avx_time_means_in_us =", meantimes["avx"])
-        print("gpt_time_means_in_us =", meantimes["gpt"])
-        print("avx_time_errors_in_us =", timestdevs["avx"])
-        print("gpt_time_errors_in_us =", timestdevs["gpt"])
-        print("avx_throughput_means_in_GiB_per_s =", meanthroughputs["avx"])
-        print("gpt_throughput_means_in_GiB_per_s =", meanthroughputs["gpt"])
-        print("avx_throughput_errors_in_GiB_per_s =", thrptstdevs["avx"])
-        print("gpt_throughput_errors_in_GiB_per_s =", thrptstdevs["gpt"])
+        print("lattice_dimensions_used =", lat_dims)
+        print("lattice_volumes =", vols)
+        print("avx_time_means_best_20p_in_us =", time_means_best["avx"])
+        print("gpt_time_means_best_20p_in_us =", time_means_best["gpt"])
+        print("avx_time_std_best_20p_in_us =", time_stdevs_best["avx"])
+        print("gpt_time_std_best_20p_in_us =", time_stdevs_best["gpt"])
+        print("avx_time_std_all_in_us =", time_stdevs_all["avx"])
+        print("gpt_time_std_all_in_us =", time_stdevs_all["gpt"])
+        print("avx_throughput_means_best_20p_in_GiB_per_s =", thrpt_means_best["avx"])
+        print("gpt_throughput_means_best_20p_in_GiB_per_s =", thrpt_means_best["gpt"])
+        print("avx_throughput_errors_best_20p_in_GiB_per_s =", thrpt_stdevs_best["avx"])
+        print("gpt_throughput_errors_best_20p_in_GiB_per_s =", thrpt_stdevs_best["gpt"])
+        print("avx_throughput_errors_all_in_GiB_per_s =", thrpt_stdevs_all["avx"])
+        print("gpt_throughput_errors_all_in_GiB_per_s =", thrpt_stdevs_all["gpt"])
 
         assert all(check_correct)
     
