@@ -169,12 +169,14 @@ class dirac_wilson_clover_avx:
     The axes are U[x,y,z,t,mu,g,gi], v[x,y,z,t,g,s] and F[x,y,z,t,munu,g,gi].
     """
     def __init__(self, U, mass_parameter, csw):
-        self.U = U
-        assert tuple(U.shape[4:7]) == (4,3,3,)
+        # self.U = U
+        # assert tuple(U.shape[4:7]) == (4,3,3,)
+        self.U = torch.permute(U, (1,2,3,4,0,5,6)).contiguous()
+
         self.mass_parameter = mass_parameter
         self.csw = csw
 
-        grid = U.shape[0:4]
+        grid = self.U.shape[0:4]
         strides = torch.tensor([grid[1]*grid[2]*grid[3], grid[2]*grid[3], grid[3], 1], dtype=torch.int32)
         npind = np.indices(grid, sparse=False)
         indices = torch.tensor(npind, dtype=torch.int32).permute((1,2,3,4,0,)).flatten(start_dim=0, end_dim=3)

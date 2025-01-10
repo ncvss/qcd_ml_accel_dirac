@@ -51,6 +51,15 @@ at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, doubl
 at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                     const at::Tensor& hops_tensor, double mass);
 
+/**
+ * @brief apply the dirac wilson operator to a vector field, using AVX instructions
+ * 
+ * @param U_tensor the gauge field configuration, (4,Lx,Ly,Lz,Lt,3,3)-tensor
+ * @param v_tensor the vector field, (Lx,Ly,Lz,Lt,4,3)-tensor
+ * @param hops_tensor lookup table for the indices for shifts by +1 and -1 in all directions
+ * @param mass the mass parameter
+ * @return at::Tensor 
+ */
 at::Tensor dw_call_lookup_256d_old_layout (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                     const at::Tensor& hops_tensor, double mass);
 
