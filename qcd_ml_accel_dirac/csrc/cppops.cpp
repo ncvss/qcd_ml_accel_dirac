@@ -37,6 +37,7 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
 
     m.def("convert_complex_to_double(Tensor complt) -> Tensor");
     m.def("dw_call_lookup_256d_old(Tensor U_tensor, Tensor v_tensor, Tensor hops_tensor, float mass) -> Tensor");
+    m.def("dwc_call_lookup_256d_old(Tensor U_tensor, Tensor v_tensor, Tensor fs_tensor, Tensor hops_tensor, float mass, float csw) -> Tensor");
 }
 
 // Registers backend implementations
@@ -51,6 +52,7 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
 
     m.impl("convert_complex_to_double", &convert_complex_to_double);
     m.impl("dw_call_lookup_256d_old", &dw_call_lookup_256d_old_layout);
+    m.impl("dwc_call_lookup_256d_old", &dwc_call_lookup_256d_old_layout);
 }
 
 }
