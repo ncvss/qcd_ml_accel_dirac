@@ -174,25 +174,32 @@ try:
         dwc_py = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
         dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
         dwc_avx = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U,mass,csw)
+        dwc_ao = qcd_ml_accel_dirac.dirac_wilson_clover_avx_old(U,mass,csw)
 
         dwv_py = dwc_py(v)
         dwv_cpp = dwc_cpp(v)
         dst_g = dwc_g(v_g)
         dwv_avx = dwc_avx(vnew)
+        dwv_ao = dwc_ao(v)
+        dwv_t = dwc_ao.template_call(v)
 
         # just for testing
-        dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
-        dwv_avx_old = torch.permute(dwv_avx, (0,1,2,3,5,4))
-        assert torch.allclose(dwv_avx_old,dwv_py)
+        # dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
+        # dwv_avx_old = torch.permute(dwv_avx, (0,1,2,3,5,4))
+        # assert torch.allclose(dwv_avx_old,dwv_py)
 
         for _ in range(n_warmup):
             dwv_cpp = dwc_cpp(v)
             dst_g = dwc_g(v_g)
             dwv_avx = dwc_avx(vnew)
+            dwv_ao = dwc_ao(v)
+            dwv_t = dwc_ao.template_call(v)
 
         results_avx = np.zeros(n_measurements)
         results_cpp = np.zeros(n_measurements)
         results_g = np.zeros(n_measurements)
+        results_ao = np.zeros(n_measurements)
+        results_t = np.zeros(n_measurements)
         bias = np.zeros(n_measurements)
 
         for i in range(n_measurements):
@@ -212,6 +219,16 @@ try:
             results_g[i] = stop - start
 
             start = time.perf_counter_ns()
+            dwv_ao = dwc_ao(v)
+            stop = time.perf_counter_ns()
+            results_ao[i] = stop - start
+
+            start = time.perf_counter_ns()
+            dwv_t = dwc_ao.template_call(v)
+            stop = time.perf_counter_ns()
+            results_t[i] = stop - start
+
+            start = time.perf_counter_ns()
             stop = time.perf_counter_ns()
             bias[i] = stop - start
 
@@ -219,6 +236,8 @@ try:
         results_avx_sorted = np.sort(results_avx)[:(n_measurements // 5)]
         results_cpp_sorted = np.sort(results_cpp)[:(n_measurements // 5)]
         results_g_sorted = np.sort(results_g)[:(n_measurements // 5)]
+        results_ao_sorted = np.sort(results_ao)[:(n_measurements // 5)]
+        results_t_sorted = np.sort(results_t)[:(n_measurements // 5)]
         
         # size of the additional hop term lookup table (only for dw_avx)
         hop_size = dwc_avx.hop_inds.element_size() * dwc_avx.hop_inds.nelement()
@@ -230,7 +249,9 @@ try:
 
         for pack,results_sorted,h in [["qcd_ml_accel_dirac", results_cpp_sorted, 0],
                                       ["gpt", results_g_sorted, 0],
-                                      ["avx instructions", results_avx_sorted, hop_size]]:
+                                      ["avx instructions", results_avx_sorted, hop_size],
+                                      ["avx, old layout", results_ao_sorted, hop_size],
+                                      ["avx, old layout, templates", results_t_sorted, hop_size]]:
             print("-----")
             print(pack)
             print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
@@ -257,13 +278,18 @@ try:
         dst_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(dst_g))
         dwv_avx_old = torch.permute(dwv_avx, (0,1,2,3,5,4))
         assert all([torch.allclose(dwv_cpp,dwv_py),torch.allclose(dwv_cpp,dst_torch),
-                    torch.allclose(dwv_avx_old,dwv_py)])
+                    torch.allclose(dwv_avx_old,dwv_py), torch.allclose(dwv_py,dwv_ao),
+                    torch.allclose(dwv_py,dwv_t)])
     
 
 except ImportError:
 
     @pytest.mark.skip("missing gpt")
     def test_throughput_wilson_avx():
+        pass
+
+    @pytest.mark.skip("missing gpt")
+    def test_throughput_wilson_clover_avx():
         pass
 
 

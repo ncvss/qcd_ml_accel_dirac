@@ -92,8 +92,12 @@ at::Tensor dwc_call_lookup_256d_cpu (const at::Tensor& U_tensor, const at::Tenso
  * @param csw the Sheikholeslami-Wohlert coefficient
  * @return at::Tensor 
  */
-at::Tensor dwc_call_lookup_256d_cpu (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+at::Tensor dwc_call_lookup_256d_old_layout (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                      const at::Tensor& fs_tensor,
+                                     const at::Tensor& hops_tensor, double mass, double csw);
+
+at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+                                     const at::Tensor& fs_tensors,
                                      const at::Tensor& hops_tensor, double mass, double csw);
 
 }

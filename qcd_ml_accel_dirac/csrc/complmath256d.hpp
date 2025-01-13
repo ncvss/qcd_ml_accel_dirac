@@ -63,3 +63,35 @@ inline __m256d compl_vectorreg_pointwise_mul (__m256d a, __m256d b){
                // a1r*b1r-a1i*b1i | a1i*b1r+a1r*b1i | a2r*b2r-a2i*b2i | a2i*b2r+a2r*b2i
     return res_reg;
 }
+
+/**
+ * @brief pointwise multiply 2 256 bit registers that each contain 2 complex numbers,
+ *        with the first number being purely real
+ * 
+ * @param a register that contains 2 real numbers (a1, ., a2, .) (imaginary parts
+ *          are ignored)
+ * @param b register that contains 2 complex numbers b1,b2, stored as 4 doubles
+ *          (Re b1, Im b1, Re b2, Im b2)
+ * @return __m256d 
+ */
+inline __m256d realxcompl_vectorreg_mul (__m256d a, __m256d b){
+    __m256d re_a_reg = _mm256_shuffle_pd(a, a, 0); // a1 | a1 | a2 | a2
+    return _mm256_mul_pd(re_a_reg, b);
+}
+
+inline __m256d imagxcompl_vectorreg_mul (__m256d a, __m256d b){
+    __m256d b_swap_reg = _mm256_shuffle_pd(b, b, 5); // b1i | b1r | b2i | b2r
+    __m256d b_mul_reg = _mm256_mul_pd(a, b_swap_reg); // a1i*b1i | a1i*b1r | a2i*b2i | a2i*b2r
+    return _mm256_addsub_pd(_mm256_setzero_pd(), b_mul_reg); // -a1i*b1i | a1i*b1r | -a2i*b2i | a2i*b2r
+}
+
+
+inline __m256d compl_reg_times_i (__m256d a){
+    __m256d a_swap_reg = _mm256_shuffle_pd(a, a, 5); // a1i | a1r | a2i | a2r
+    return _mm256_addsub_pd(_mm256_setzero_pd(), a_swap_reg); // -a1i | a1r | -a2i | a2r
+}
+
+inline __m256d compl_reg_times_minus_i (__m256d a){
+    __m256d minus_re = _mm256_addsub_pd(_mm256_setzero_pd(), a); // -a1r | a1i | -a2r | a2i
+    return _mm256_shuffle_pd(minus_re, minus_re, 5); // a1i | -a1r | a2i | -a2r
+}

@@ -301,6 +301,10 @@ class dirac_wilson_clover_avx_old:
         return torch.ops.qcd_ml_accel_dirac.dwc_call_lookup_256d_old(self.U, v, self.field_strength,
                                                                  self.hop_inds, self.mass_parameter,
                                                                  self.csw)
+    def template_call(self, v):
+        return torch.ops.qcd_ml_accel_dirac.dwc_call_256d_om_template(self.U, v, self.field_strength,
+                                                                 self.hop_inds, self.mass_parameter,
+                                                                 self.csw)
 
 
 class domain_wall_dirac:
