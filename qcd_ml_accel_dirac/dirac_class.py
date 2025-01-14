@@ -111,7 +111,10 @@ class dirac_wilson_avx_old:
 
     def __call__(self, v):
         return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d_old(self.U, v, self.hop_inds,
-                                                                self.mass_parameter)
+                                                                    self.mass_parameter)
+    def template_call(self, v):
+        return torch.ops.qcd_ml_accel_dirac.dw_call_256d_om_template(self.U, v, self.hop_inds,
+                                                                     self.mass_parameter)
     
 
         

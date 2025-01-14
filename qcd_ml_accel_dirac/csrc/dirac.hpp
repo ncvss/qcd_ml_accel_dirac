@@ -63,6 +63,9 @@ at::Tensor dw_call_lookup_256d_cpu (const at::Tensor& U_tensor, const at::Tensor
 at::Tensor dw_call_lookup_256d_old_layout (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                     const at::Tensor& hops_tensor, double mass);
 
+at::Tensor dw_call_256d_om_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+                                     const at::Tensor& hops_tensor, double mass);
+
 
 /**
  * @brief apply the dirac wilson clover operator to a vector field, using AVX instructions

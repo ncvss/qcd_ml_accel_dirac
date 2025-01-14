@@ -79,6 +79,16 @@ inline __m256d realxcompl_vectorreg_mul (__m256d a, __m256d b){
     return _mm256_mul_pd(re_a_reg, b);
 }
 
+/**
+ * @brief pointwise multiply 2 256 bit registers that each contain 2 complex numbers,
+ *        with the first number being purely real
+ * 
+ * @param a register that contains 2 purely imaginary numbers a1, a2 in the format
+ *          (a1,a1,a2,a2)
+ * @param b register that contains 2 complex numbers b1,b2, stored as 4 doubles
+ *          (Re b1, Im b1, Re b2, Im b2)
+ * @return __m256d 
+ */
 inline __m256d imagxcompl_vectorreg_mul (__m256d a, __m256d b){
     __m256d b_swap_reg = _mm256_shuffle_pd(b, b, 5); // b1i | b1r | b2i | b2r
     __m256d b_mul_reg = _mm256_mul_pd(a, b_swap_reg); // a1i*b1i | a1i*b1r | a2i*b2i | a2i*b2r
