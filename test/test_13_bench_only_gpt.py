@@ -119,7 +119,7 @@ for n in variants:
     print(f"{n}_time_peaks_in_us =", time_peaks[n])
 
 
-print("all_measurements_for_template_in_us =", {vo:results["template"][vo] *10**6 for vo in vols})
+print("all_measurements_for_gpt_in_us =", {vo:results["gpt"][vo] *10**6 for vo in vols})
 
 
 print("test_throughput_wilson_clover_alternating_volumes")
@@ -233,7 +233,7 @@ for n in variants:
     print(f"{n}_time_peaks_in_us =", time_peaks[n])
 
 
-print("all_measurements_for_template_in_us =", {vo:results["template"][vo] *10**6 for vo in vols})
+print("all_measurements_for_gpt_in_us =", {vo:results["gpt"][vo] *10**6 for vo in vols})
 
 assert True
 
