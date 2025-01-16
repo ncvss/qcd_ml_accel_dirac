@@ -67,15 +67,15 @@ for nr in range(n_measurements):
             dst_g = dw_g(v_g)
 
 
-        start = time.perf_counter_ns()
+        start = time.perf_counter()
         dst_g = dw_g(v_g)
-        stop = time.perf_counter_ns()
+        stop = time.perf_counter()
         results["gpt"][vo][nr] = stop - start
 
 
         if nr == 0:
-            start = time.perf_counter_ns()
-            stop = time.perf_counter_ns()
+            start = time.perf_counter()
+            stop = time.perf_counter()
             bias[nr] = stop - start
 
 
@@ -103,10 +103,10 @@ for vari in variants:
         # print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
 
 
-        time_means_best[vari].append(np.mean(results_sorted) / 1000)
-        time_stdevs_all[vari].append((np.std(res) + np.mean(bias)) / 1000)
-        time_stdevs_best[vari].append((np.std(results_sorted) + np.mean(bias)) / 1000)
-        time_peaks[vari].append(results_sorted[0] / 1000)
+        time_means_best[vari].append(np.mean(results_sorted) *10**6)
+        time_stdevs_all[vari].append((np.std(res) + np.mean(bias)) *10**6)
+        time_stdevs_best[vari].append((np.std(results_sorted) + np.mean(bias)) *10**6)
+        time_peaks[vari].append(results_sorted[0] *10**6)
         
     
 
@@ -117,13 +117,9 @@ for n in variants:
     print(f"{n}_time_std_best_20p_in_us =", time_stdevs_best[n])
     print(f"{n}_time_std_all_in_us =", time_stdevs_all[n])
     print(f"{n}_time_peaks_in_us =", time_peaks[n])
-    print(f"{n}_throughput_means_best_20p_in_GiB_per_s =", thrpt_means_best[n])
-    print(f"{n}_throughput_std_best_20p_in_GiB_per_s =", thrpt_stdevs_best[n])
-    print(f"{n}_throughput_std_all_in_GiB_per_s =", thrpt_stdevs_all[n])
-    print(f"{n}_throughput_peaks_in_GiB_per_s =", thrpt_peaks[n])
 
 
-print("all_measurements_for_template_in_us =", {vo:results["template"][vo] / 1000 for vo in vols})
+print("all_measurements_for_template_in_us =", {vo:results["template"][vo] *10**6 for vo in vols})
 
 
 print("test_throughput_wilson_clover_alternating_volumes")
@@ -185,15 +181,15 @@ for nr in range(n_measurements):
 
 
 
-        start = time.perf_counter_ns()
+        start = time.perf_counter()
         dst_g = dw_g(v_g)
-        stop = time.perf_counter_ns()
+        stop = time.perf_counter()
         results["gpt"][vo][nr] = stop - start
 
 
         if nr == 0:
-            start = time.perf_counter_ns()
-            stop = time.perf_counter_ns()
+            start = time.perf_counter()
+            stop = time.perf_counter()
             bias[nr] = stop - start
 
 
@@ -221,10 +217,10 @@ for vari in variants:
         # print(f"peak thrpt. : [GiB/s] {throughput_peak_GiBs: .3f}")
 
 
-        time_means_best[vari].append(np.mean(results_sorted) / 1000)
-        time_stdevs_all[vari].append((np.std(res) + np.mean(bias)) / 1000)
-        time_stdevs_best[vari].append((np.std(results_sorted) + np.mean(bias)) / 1000)
-        time_peaks[vari].append(results_sorted[0] / 1000)
+        time_means_best[vari].append(np.mean(results_sorted) *10**6)
+        time_stdevs_all[vari].append((np.std(res) + np.mean(bias)) *10**6)
+        time_stdevs_best[vari].append((np.std(results_sorted) + np.mean(bias)) *10**6)
+        time_peaks[vari].append(results_sorted[0] *10**6)
         
     
 
@@ -237,7 +233,7 @@ for n in variants:
     print(f"{n}_time_peaks_in_us =", time_peaks[n])
 
 
-print("all_measurements_for_template_in_us =", {vo:results["template"][vo] / 1000 for vo in vols})
+print("all_measurements_for_template_in_us =", {vo:results["template"][vo] *10**6 for vo in vols})
 
 assert True
 
