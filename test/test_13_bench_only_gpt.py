@@ -1,4 +1,3 @@
-import torch
 import socket
 import numpy as np
 import time
@@ -13,9 +12,7 @@ import gpt as g # type: ignore
 
 print("test_throughput_wilson_alternating_volumes")
 print()
-num_threads = torch.get_num_threads()
 print("running on host", socket.gethostname())
-print(f'Machine has {num_threads} threads')
 
 lat_dims = [[4,4,4,4]]
 for li in range(7):
@@ -131,9 +128,7 @@ print("all_measurements_for_template_in_us =", {vo:results["template"][vo] / 100
 
 print("test_throughput_wilson_clover_alternating_volumes")
 print()
-num_threads = torch.get_num_threads()
 print("running on host", socket.gethostname())
-print(f'Machine has {num_threads} threads')
 
 lat_dims = [[4,4,4,4]]
 for li in range(7):
