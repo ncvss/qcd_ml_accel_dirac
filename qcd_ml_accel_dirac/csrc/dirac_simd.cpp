@@ -599,10 +599,10 @@ at::Tensor dw_call_lookup_256d_old_layout (const at::Tensor& U_tensor, const at:
 // without having to check at runtime, instead generating the different code at compile time
 // also, now gamma works as a template function too
 // g and t are parameters, as their loop is always the same
-template <int mu, int s>
+template <int mu, int g, int s>
 void dw_256d_om_mu_s_loop (const double * U, const double * v,
                            const int * hops, __m256d massf_reg,
-                           double * result, int g, int t, int vol){
+                           double * result, int t, int vol){
 
     // register for the -1/2 prefactor
     __m256d m0p5_reg = _mm256_set1_pd(-0.5);
@@ -715,24 +715,46 @@ at::Tensor dw_call_256d_om_template (const at::Tensor& U_tensor, const at::Tenso
 #pragma omp parallel for
     for (int t = 0; t < vol; t++){
 
-        // loop over mu=0,1,2,3 and s=0,2 manually with template
+        // loop over mu=0,1,2,3 g=0,1,2 and s=0,2 manually with template
 
-        for (int g = 0; g < 3; g++){
-            dw_256d_om_mu_s_loop<0,0>(U,v,hops,massf_reg,result,g,t,vol);
-            dw_256d_om_mu_s_loop<0,2>(U,v,hops,massf_reg,result,g,t,vol);
-        }
-        for (int g = 0; g < 3; g++){
-            dw_256d_om_mu_s_loop<1,0>(U,v,hops,massf_reg,result,g,t,vol);
-            dw_256d_om_mu_s_loop<1,2>(U,v,hops,massf_reg,result,g,t,vol);
-        }
-        for (int g = 0; g < 3; g++){
-            dw_256d_om_mu_s_loop<2,0>(U,v,hops,massf_reg,result,g,t,vol);
-            dw_256d_om_mu_s_loop<2,2>(U,v,hops,massf_reg,result,g,t,vol);
-        }
-        for (int g = 0; g < 3; g++){
-            dw_256d_om_mu_s_loop<3,0>(U,v,hops,massf_reg,result,g,t,vol);
-            dw_256d_om_mu_s_loop<3,2>(U,v,hops,massf_reg,result,g,t,vol);
-        }
+        dw_256d_om_mu_s_loop<0,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<0,0,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<0,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<0,1,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<0,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<0,2,2>(U,v,hops,massf_reg,result,t,vol);
+
+
+        dw_256d_om_mu_s_loop<1,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<1,0,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<1,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<1,1,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<1,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<1,2,2>(U,v,hops,massf_reg,result,t,vol);
+
+
+        dw_256d_om_mu_s_loop<2,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<2,0,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<2,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<2,1,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<2,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<2,2,2>(U,v,hops,massf_reg,result,t,vol);
+
+
+        dw_256d_om_mu_s_loop<3,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<3,0,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<3,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<3,1,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_om_mu_s_loop<3,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_om_mu_s_loop<3,2,2>(U,v,hops,massf_reg,result,t,vol);
 
     }
 
@@ -1290,10 +1312,10 @@ at::Tensor dwc_call_lookup_256d_old_layout (const at::Tensor& U_tensor, const at
 // without having to check at runtime, instead generating the different code at compile time
 // also, now gamma and sigma work as template functions too
 // g and t are parameters, as their loop is always the same
-template <int mu, int s>
+template <int mu, int g, int s>
 void dwc_256d_om_mu_s_loop (const double * U, const double * v, const double * F,
                                    const int * hops, __m256d massf_reg, __m256d csw_reg,
-                                   double * result, int g, int t, int vol){
+                                   double * result, int t, int vol){
 
     // register for the -1/2 prefactor
     __m256d m0p5_reg = _mm256_set1_pd(-0.5);
@@ -1459,24 +1481,48 @@ at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tens
 #pragma omp parallel for
     for (int t = 0; t < vol; t++){
 
-        // loop over mu=0,1,2,3 and s=0,2 manually with template
+        // loop over mu=0,1,2,3 g=0,1,2 and s=0,2 manually with template
 
-        for (int g = 0; g < 3; g++){
-            dwc_256d_om_mu_s_loop<0,0>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-            dwc_256d_om_mu_s_loop<0,2>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-        }
-        for (int g = 0; g < 3; g++){
-            dwc_256d_om_mu_s_loop<1,0>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-            dwc_256d_om_mu_s_loop<1,2>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-        }
-        for (int g = 0; g < 3; g++){
-            dwc_256d_om_mu_s_loop<2,0>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-            dwc_256d_om_mu_s_loop<2,2>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-        }
-        for (int g = 0; g < 3; g++){
-            dwc_256d_om_mu_s_loop<3,0>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-            dwc_256d_om_mu_s_loop<3,2>(U,v,F,hops,massf_reg,csw_reg,result,g,t,vol);
-        }
+
+        dwc_256d_om_mu_s_loop<0,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<0,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<0,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<0,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<0,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<0,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+
+        dwc_256d_om_mu_s_loop<1,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<1,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<1,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<1,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<1,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<1,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+
+        dwc_256d_om_mu_s_loop<2,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<2,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<2,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<2,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<2,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<2,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+
+        dwc_256d_om_mu_s_loop<3,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<3,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<3,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<3,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_om_mu_s_loop<3,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_om_mu_s_loop<3,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        
 
     }
 

@@ -184,7 +184,7 @@ try:
 
         check_correct = []
 
-        variants = ["avx","gpt","template"]
+        variants = ["avx","template"]
 
         time_means_best = {n:[] for n in variants}
         time_stdevs_best = {n:[] for n in variants}
