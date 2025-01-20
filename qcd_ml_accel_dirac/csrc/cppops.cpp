@@ -32,14 +32,16 @@ TORCH_LIBRARY(qcd_ml_accel_dirac, m) {
     m.def("dirac_wilson_clover_call(Tensor U, Tensor v, Tensor[] F, float mass, float csw) -> Tensor");
     m.def("plaquette_action(Tensor U, float g) -> float");
     m.def("domain_wall_dirac_call(Tensor U, Tensor v, float mass, float m5) -> Tensor");
-    m.def("dw_call_lookup_256d(Tensor U_tensor, Tensor v_tensor, Tensor hops_tensor, float mass) -> Tensor");
-    m.def("dwc_call_lookup_256d(Tensor U_tensor, Tensor v_tensor, Tensor fs_tensor, Tensor hops_tensor, float mass, float csw) -> Tensor");
 
     m.def("convert_complex_to_double(Tensor complt) -> Tensor");
+#ifdef CPU_IS_AVX_CAPABLE
+    m.def("dw_call_lookup_256d(Tensor U_tensor, Tensor v_tensor, Tensor hops_tensor, float mass) -> Tensor");
+    m.def("dwc_call_lookup_256d(Tensor U_tensor, Tensor v_tensor, Tensor fs_tensor, Tensor hops_tensor, float mass, float csw) -> Tensor");
     m.def("dw_call_lookup_256d_old(Tensor U_tensor, Tensor v_tensor, Tensor hops_tensor, float mass) -> Tensor");
     m.def("dw_call_256d_om_template(Tensor U_tensor, Tensor v_tensor, Tensor hops_tensor, float mass) -> Tensor");
     m.def("dwc_call_lookup_256d_old(Tensor U_tensor, Tensor v_tensor, Tensor fs_tensor, Tensor hops_tensor, float mass, float csw) -> Tensor");
     m.def("dwc_call_256d_om_template(Tensor U_tensor, Tensor v_tensor, Tensor fs_tensor, Tensor hops_tensor, float mass, float csw) -> Tensor");
+#endif
 }
 
 // Registers backend implementations
@@ -49,14 +51,16 @@ TORCH_LIBRARY_IMPL(qcd_ml_accel_dirac, CPU, m) {
     m.impl("dirac_wilson_clover_call", &dwc_call_cpu);
     m.impl("plaquette_action", &plaq_action_cpu);
     m.impl("domain_wall_dirac_call", &domain_wall_call_cpu);
-    m.impl("dw_call_lookup_256d", &dw_call_lookup_256d_cpu);
-    m.impl("dwc_call_lookup_256d", &dwc_call_lookup_256d_cpu);
 
     m.impl("convert_complex_to_double", &convert_complex_to_double);
+#ifdef CPU_IS_AVX_CAPABLE
+    m.impl("dw_call_lookup_256d", &dw_call_lookup_256d_cpu);
+    m.impl("dwc_call_lookup_256d", &dwc_call_lookup_256d_cpu);
     m.impl("dw_call_lookup_256d_old", &dw_call_lookup_256d_old_layout);
     m.impl("dw_call_256d_om_template", &dw_call_256d_om_template);
     m.impl("dwc_call_lookup_256d_old", &dwc_call_lookup_256d_old_layout);
     m.impl("dwc_call_256d_om_template", &dwc_call_256d_om_template);
+#endif
 }
 
 }

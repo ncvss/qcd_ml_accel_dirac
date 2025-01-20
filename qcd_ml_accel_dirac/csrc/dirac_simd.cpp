@@ -1,3 +1,5 @@
+#ifdef CPU_IS_AVX_CAPABLE
+
 #include <torch/extension.h>
 #include <omp.h>
 #include <immintrin.h>
@@ -1530,3 +1532,5 @@ at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tens
 }
 
 }
+
+#endif

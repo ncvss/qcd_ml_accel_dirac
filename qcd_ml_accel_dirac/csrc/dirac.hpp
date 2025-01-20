@@ -39,6 +39,8 @@ at::Tensor dwc_call_cpu (const at::Tensor& U, const at::Tensor& v, const std::ve
  */
 at::Tensor domain_wall_call_cpu (const at::Tensor& U, const at::Tensor& v, double mass, double m5);
 
+
+#ifdef CPU_IS_AVX_CAPABLE
 /**
  * @brief apply the dirac wilson operator to a vector field, using AVX instructions
  * 
@@ -103,4 +105,5 @@ at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tens
                                      const at::Tensor& fs_tensors,
                                      const at::Tensor& hops_tensor, double mass, double csw);
 
+#endif
 }

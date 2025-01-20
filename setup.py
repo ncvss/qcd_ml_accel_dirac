@@ -1,6 +1,8 @@
 import os
 import torch
 import glob
+import subprocess
+from sys import platform
 
 from setuptools import find_packages, setup
 
@@ -19,13 +21,32 @@ def get_extensions():
         "cxx": [
             "-O3",
             "-fopenmp",
-            "-march=haswell",
+            #"-mavx",
+            #"-mfma",
+            #"-mavx2",
+            #"-mavx512f",
+            #"-march=haswell",
         ],
         "nvcc": [
             "-O3",
             "-fopenmp",
         ],
     }
+
+    avx_macro = None
+    if platform == "linux":
+        # cpu_flags = []
+        lscpu_output = subprocess.run(["lscpu"], capture_output=True, text=True)
+        cpu_flags = lscpu_output.stdout.split()
+        # for li in cpu_capabilities.stdout.split("\n"):
+        #     if li[0:5] == "Flags":
+        #         cpu_flags = li.split()
+        
+        if "avx" in cpu_flags and "fma" in cpu_flags and "avx2" in cpu_flags:
+            extra_compile_args["cxx"] += ["-mavx", "-mfma", "-mavx2", ]
+            avx_macro = [("CPU_IS_AVX_CAPABLE", None)]
+
+    
 
     this_dir = os.path.dirname(os.path.curdir)
     extensions_dir = os.path.join(this_dir, library_name, "csrc")
@@ -36,6 +57,7 @@ def get_extensions():
             f"{library_name}._C",
             sources,
             extra_compile_args=extra_compile_args,
+            define_macros=avx_macro,
         )
     ]
 
@@ -46,6 +68,8 @@ setup(
     name=library_name,
     version="0.0.5",
     packages=find_packages(),
+    #packages=["qcd_ml_accel_dirac"],
+    #package_dir={"qcd_ml_accel_dirac": "qcd_ml_accel_dirac/"},
     ext_modules=get_extensions(),
     cmdclass={"build_ext": BuildExtension},
 )

@@ -77,8 +77,11 @@ class dirac_wilson_avx:
         self.hop_inds = torch.stack(hop_inds, dim=1).contiguous()
 
     def __call__(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d(self.U, v, self.hop_inds,
-                                                                self.mass_parameter)
+        try:
+            return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d(self.U, v, self.hop_inds,
+                                                                    self.mass_parameter)
+        except AttributeError:
+            raise AttributeError("No AVX capabilities detected. AVX version cannot be called.")
 
 class dirac_wilson_avx_old:
     """
@@ -113,8 +116,11 @@ class dirac_wilson_avx_old:
         return torch.ops.qcd_ml_accel_dirac.dw_call_lookup_256d_old(self.U, v, self.hop_inds,
                                                                     self.mass_parameter)
     def template_call(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dw_call_256d_om_template(self.U, v, self.hop_inds,
-                                                                     self.mass_parameter)
+        try:
+            return torch.ops.qcd_ml_accel_dirac.dw_call_256d_om_template(self.U, v, self.hop_inds,
+                                                                        self.mass_parameter)
+        except AttributeError:
+            raise AttributeError("No AVX capabilities detected. AVX version cannot be called.")
     
 
         
@@ -231,9 +237,12 @@ class dirac_wilson_clover_avx:
         assert tuple(self.field_strength.shape[4:7]) == (6,3,3,)
 
     def __call__(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dwc_call_lookup_256d(self.U, v, self.field_strength,
-                                                                 self.hop_inds, self.mass_parameter,
-                                                                 self.csw)
+        try:
+            return torch.ops.qcd_ml_accel_dirac.dwc_call_lookup_256d(self.U, v, self.field_strength,
+                                                                    self.hop_inds, self.mass_parameter,
+                                                                    self.csw)
+        except AttributeError:
+            raise AttributeError("No AVX capabilities detected. AVX version cannot be called.")
 
 
 class dirac_wilson_clover_avx_old:
@@ -305,9 +314,12 @@ class dirac_wilson_clover_avx_old:
                                                                  self.hop_inds, self.mass_parameter,
                                                                  self.csw)
     def template_call(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dwc_call_256d_om_template(self.U, v, self.field_strength,
-                                                                 self.hop_inds, self.mass_parameter,
-                                                                 self.csw)
+        try:
+            return torch.ops.qcd_ml_accel_dirac.dwc_call_256d_om_template(self.U, v, self.field_strength,
+                                                                    self.hop_inds, self.mass_parameter,
+                                                                    self.csw)
+        except AttributeError:
+            raise AttributeError("No AVX capabilities detected. AVX version cannot be called.")
 
 
 class domain_wall_dirac:
