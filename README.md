@@ -4,8 +4,10 @@ Designed as an extension for [qcd_ml](https://github.com/daknuett/qcd_ml). Opera
 that are set up like in qcd_ml.
 
 Provides two classes `dirac_wilson` and `dirac_wilson_clover` that define the corresponding operator
-for a specific gauge configuration, mass and coupling. They are designed to be used interchangeably with
-those from qcd_ml.
+for a specific gauge configuration, mass and coupling.
+They are designed to be used interchangeably with those from qcd_ml.
+
+There are also AVX versions for these operators which can be called on AVX capable computers.
 
 The ``compat`` submodule contains functions to convert between pytorch tensors and
 [gpt](https://github.com/lehner/gpt) lattices.
