@@ -12,6 +12,12 @@ try:
     import gpt as g # type: ignore
     import qcd_ml_accel_dirac.compat
 
+    # try to call the dirac wilson to see if the c++ function was compiled
+    U = torch.zeros([4,1,1,1,1,3,3], dtype=torch.cdouble)
+    v = torch.zeros([1,1,1,1,4,3], dtype=torch.cdouble)
+    dw_avx = qcd_ml_accel_dirac.dirac_wilson_avx(U,-0.5)
+    dwv_avx = dw_avx(v)
+
     def test_throughput_wilson_avx():
         print()
         num_threads = torch.get_num_threads()
@@ -241,4 +247,12 @@ except ImportError:
     def test_throughput_wilson_clover_avx():
         pass
 
+except RuntimeError:
 
+    @pytest.mark.skip("missing AVX")
+    def test_throughput_wilson_avx():
+        pass
+
+    @pytest.mark.skip("missing AVX")
+    def test_throughput_wilson_clover_avx():
+        pass

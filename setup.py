@@ -29,6 +29,7 @@ def get_extensions():
     }
 
     avx_macro = None
+    # if on linux, use lscpu command to find if computer has AVX capabilities
     if platform == "linux":
         lscpu_output = subprocess.run(["lscpu"], capture_output=True, text=True)
         cpu_flags = lscpu_output.stdout.split()

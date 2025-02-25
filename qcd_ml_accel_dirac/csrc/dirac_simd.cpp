@@ -1,37 +1,15 @@
 #include <torch/extension.h>
 
+// will only be compiled if AVX capabilities were detected
 #ifdef CPU_IS_AVX_CAPABLE
 #include <omp.h>
 #include <immintrin.h>
 
+#include "indexfunc_double.hpp"
 #include "complmath256d.hpp"
+#include "complload256d.hpp"
 
 namespace qcd_ml_accel_dirac{
-
-// address for complex gauge field pointer that is stored as 2 doubles
-inline int uixo (int t, int mu, int g, int gi, int vol){
-    return mu*vol*18 + t*18 + g*6 + gi*2;
-}
-// address for complex vector field pointer that is stored as 2 doubles
-inline int vixo (int t, int g, int s){
-    return t*24 + s*6 + g*2;
-}
-// address for hop pointer
-inline int hixd (int t, int h, int d){
-    return t*8 + h*2 + d;
-}
-// address for gamf
-inline int gixd (int mu, int s){
-    return mu*8 + s*2;
-}
-// address for field strength tensors (index order F[t,munu,g,gi])
-inline int fixd (int t, int munu, int g, int gi){
-    return t*108 + munu*18 + g*6 + gi*2;
-}
-// address for sigf
-inline int sixd (int munu, int s){
-    return munu*8 + s*2;
-}
 
 // gamma index for 2 packed spin components
 // s=0 is for the spin components 0 and 1, s=2 for th spin components 2 and 3
@@ -100,50 +78,14 @@ template <int MN, int S> inline __m256d sigma_mul (__m256d a){
 }
 
 
-// load function for v with the layout v[t,s,gi]
-inline __m256d load_split_spin (const double * addr){
-    // high part of the register should be s+1, so the address is increased by 6
-    return _mm256_loadu2_m128d(addr+6,addr);
-}
-// load function for v with the layout v[t,s,gi], that swaps the values
-inline __m256d load_split_spin_sw (const double * addr){
-    // low part of the register should be s+1, so the address is increased by 6
-    return _mm256_loadu2_m128d(addr,addr+6);
-}
-// store in v with the layout v[t,s,gi]
-inline void store_split_spin (double * addr, __m256d a){
-    _mm256_storeu2_m128d(addr+6,addr,a);
-}
 
-// // load the spin components s and s+1 of gamma_mu @ v into a register
-// // gamma_mu swaps around the spin components of v in the following way:
-// // - for mu=0 or mu=1, the order is 3,2,1,0
-// // - for mu=2 or mu=3, the order is 2,3,0,1
-// // this means: for mu=0,1 our register will be (v3,v2), for mu=2,3 it will be (v2,v3)
-// // gamf_reg is a register with the correct prefactor
-// template <int mu>
-// inline __m256d load_vec_times_gamma_mu (double + v, int gi, int s, __m256d gamf_reg){
-//     if constexpr (mu == 0 || mu == 1) {
-//         // 
-//         __m256d v_x_gamma = _mm256_loadu_pd(v,gi,gamx_pd[s]);
-//         v_x_gamma = _mm256_permute4x64_pd(v_x_gamma,78);
-//         v_x_gamma = compl_vectorreg_pointwise_mul(gamf_reg, v_x_gamma);
-//         return v_x_gamma;
-//     } else {
-//         __m256d v_x_gamma = _mm256_loadu_pd(v,gi,gamx_pd[s]);
-//         v_x_gamma = compl_vectorreg_pointwise_mul(gamf_reg, v_x_gamma);
-//         return v_x_gamma;
-//     }
-// }
-
-
-// template for the body of the t,mu,g,s loop in dw_call_256d_om_template
+// template for the body of the t,mu,g,s loop in dw_call_256d_template
 // mu, g and s are template parameters so that the loop body can differ between iterations
 // without having to check at runtime, instead generating the different code at compile time
 // also, now gamma works as a template function too
 // t is a function parameter, as it varies at compile time, also the loop does not change with t
 template <int mu, int g, int s>
-void dw_256d_om_mu_s_loop (const double * U, const double * v,
+void dw_256d_mu_g_s_loop (const double * U, const double * v,
                            const int * hops, __m256d massf_reg,
                            double * result, int t, int vol){
 
@@ -222,7 +164,7 @@ void dw_256d_om_mu_s_loop (const double * U, const double * v,
 }
 
 
-at::Tensor dw_call_256d_om_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+at::Tensor dw_call_256d_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                      const at::Tensor& hops_tensor, double mass){
 
     // memory layout has to be U[mu,x,y,z,t,g,gi] and v[x,y,z,t,s,gi]
@@ -263,44 +205,44 @@ at::Tensor dw_call_256d_om_template (const at::Tensor& U_tensor, const at::Tenso
         // loop over mu=0,1,2,3 g=0,1,2 and s=0,2 manually with template
         // the spin is vectorized, s=0,1 and s=2,3 are computed at the same time
 
-        dw_256d_om_mu_s_loop<0,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<0,0,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<0,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<0,0,2>(U,v,hops,massf_reg,result,t,vol);
 
-        dw_256d_om_mu_s_loop<0,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<0,1,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<0,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<0,1,2>(U,v,hops,massf_reg,result,t,vol);
 
-        dw_256d_om_mu_s_loop<0,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<0,2,2>(U,v,hops,massf_reg,result,t,vol);
-
-
-        dw_256d_om_mu_s_loop<1,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<1,0,2>(U,v,hops,massf_reg,result,t,vol);
-
-        dw_256d_om_mu_s_loop<1,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<1,1,2>(U,v,hops,massf_reg,result,t,vol);
-
-        dw_256d_om_mu_s_loop<1,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<1,2,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<0,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<0,2,2>(U,v,hops,massf_reg,result,t,vol);
 
 
-        dw_256d_om_mu_s_loop<2,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<2,0,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<1,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<1,0,2>(U,v,hops,massf_reg,result,t,vol);
 
-        dw_256d_om_mu_s_loop<2,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<2,1,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<1,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<1,1,2>(U,v,hops,massf_reg,result,t,vol);
 
-        dw_256d_om_mu_s_loop<2,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<2,2,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<1,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<1,2,2>(U,v,hops,massf_reg,result,t,vol);
 
 
-        dw_256d_om_mu_s_loop<3,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<3,0,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<2,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<2,0,2>(U,v,hops,massf_reg,result,t,vol);
 
-        dw_256d_om_mu_s_loop<3,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<3,1,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<2,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<2,1,2>(U,v,hops,massf_reg,result,t,vol);
 
-        dw_256d_om_mu_s_loop<3,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dw_256d_om_mu_s_loop<3,2,2>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<2,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<2,2,2>(U,v,hops,massf_reg,result,t,vol);
+
+
+        dw_256d_mu_g_s_loop<3,0,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<3,0,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_mu_g_s_loop<3,1,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<3,1,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dw_256d_mu_g_s_loop<3,2,0>(U,v,hops,massf_reg,result,t,vol);
+        dw_256d_mu_g_s_loop<3,2,2>(U,v,hops,massf_reg,result,t,vol);
 
     }
 
@@ -308,13 +250,13 @@ at::Tensor dw_call_256d_om_template (const at::Tensor& U_tensor, const at::Tenso
 }
 
 
-// template for the body of the t,mu,g,s loop in dwc_call_256d_om_template
+// template for the body of the t,mu,g,s loop in dwc_call_256d_template
 // mu, g and s are template parameters so that the loop body can differ between iterations
 // without having to check at runtime, instead generating the different code at compile time
 // also, now gamma and sigma work as template functions too
 // t is a function parameter, as it varies at compile time, also the loop does not change with t
 template <int mu, int g, int s>
-void dwc_256d_om_mu_s_loop (const double * U, const double * v, const double * F,
+void dwc_256d_mu_g_s_loop (const double * U, const double * v, const double * F,
                             const int * hops, __m256d massf_reg, __m256d csw_reg,
                             double * result, int t, int vol){
 
@@ -439,7 +381,7 @@ void dwc_256d_om_mu_s_loop (const double * U, const double * v, const double * F
 }
 
 
-at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+at::Tensor dwc_call_256d_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                       const at::Tensor& fs_tensors, const at::Tensor& hops_tensor,
                                       double mass, double csw){
 
@@ -487,44 +429,44 @@ at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tens
         // the spin is vectorized, s=0,1 and s=2,3 are computed at the same time
 
 
-        dwc_256d_om_mu_s_loop<0,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<0,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<0,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<0,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
-        dwc_256d_om_mu_s_loop<0,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<0,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<0,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<0,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
-        dwc_256d_om_mu_s_loop<0,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<0,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-
-
-        dwc_256d_om_mu_s_loop<1,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<1,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-
-        dwc_256d_om_mu_s_loop<1,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<1,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-
-        dwc_256d_om_mu_s_loop<1,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<1,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<0,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<0,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
 
-        dwc_256d_om_mu_s_loop<2,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<2,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<1,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<1,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
-        dwc_256d_om_mu_s_loop<2,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<2,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<1,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<1,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
-        dwc_256d_om_mu_s_loop<2,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<2,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<1,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<1,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
 
-        dwc_256d_om_mu_s_loop<3,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<3,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<2,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<2,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
-        dwc_256d_om_mu_s_loop<3,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<3,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<2,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<2,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
 
-        dwc_256d_om_mu_s_loop<3,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
-        dwc_256d_om_mu_s_loop<3,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<2,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<2,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+
+        dwc_256d_mu_g_s_loop<3,0,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<3,0,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_mu_g_s_loop<3,1,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<3,1,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+
+        dwc_256d_mu_g_s_loop<3,2,0>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
+        dwc_256d_mu_g_s_loop<3,2,2>(U,v,F,hops,massf_reg,csw_reg,result,t,vol);
         
 
     }
@@ -538,13 +480,13 @@ at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tens
 namespace qcd_ml_accel_dirac{
 // if computer is not avx capable, these functions simply throw exceptions
 
-at::Tensor dw_call_256d_om_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+at::Tensor dw_call_256d_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                      const at::Tensor& hops_tensor, double mass){
     TORCH_CHECK(false, "No AVX capabilities detected, AVX function not callable.");
     return v_tensor;
 }
 
-at::Tensor dwc_call_256d_om_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
+at::Tensor dwc_call_256d_template (const at::Tensor& U_tensor, const at::Tensor& v_tensor,
                                       const at::Tensor& fs_tensors, const at::Tensor& hops_tensor,
                                       double mass, double csw){
     TORCH_CHECK(false, "No AVX capabilities detected, AVX function not callable.");
