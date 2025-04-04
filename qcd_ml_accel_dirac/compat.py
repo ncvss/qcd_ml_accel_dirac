@@ -65,7 +65,7 @@ def array_to_lattice(arr, grid, lat_constructor):
 
 def array_to_lattice_list(arr, grid, lat_constructor):
     """
-    Convert a numpy.ndarray, torch.Tensor of a list of the former to a list of gpt lattices.
+    Convert a numpy.ndarray, torch.Tensor or a list of the former to a list of gpt lattices.
     Mainly to be used for gauge fields that are stored as a single tensor.
     """
     res = []

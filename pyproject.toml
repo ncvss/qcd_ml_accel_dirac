@@ -6,7 +6,7 @@ authors = [
 description = "higher performant functions for qcd_ml"
 requires-python=">=3.4"
 dependencies=['torch >= 2.4.0']
-version="0.0.6"
+version="0.0.7"
 
 
 [build-system]

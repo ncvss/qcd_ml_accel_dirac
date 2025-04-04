@@ -3,11 +3,11 @@
 
 namespace qcd_ml_accel_dirac {
 
-// address for complex gauge field pointer
+// address for complex gauge field pointer with layout U[mu,t,g,gi]
 inline int uixo (int t, int mu, int g, int gi, int vol){
     return mu*vol*18 + t*18 + g*6 + gi*2;
 }
-// address for complex vector field pointer
+// address for complex vector field pointer with layout v[mu,s,g]
 inline int vixo (int t, int g, int s){
     return t*24 + s*6 + g*2;
 }
@@ -19,13 +19,17 @@ inline int hixd (int t, int h, int d){
 inline int gixd (int mu, int s){
     return mu*8 + s*2;
 }
-// address for field strength tensors (index order F[t,munu,g,gi])
+// address for field strength tensors with layout F[t,munu,g,gi]
 inline int fixd (int t, int munu, int g, int gi){
     return t*108 + munu*18 + g*6 + gi*2;
 }
 // address for the sigma matrix prefactor
 inline int sixd (int munu, int s){
     return munu*8 + s*2;
+}
+// address for field strength x sigma product tensor with layout F[t,flattened upper triangle,block index]
+inline int fixt (int t, int triix){
+    return t*84 + triix*4;
 }
 
 }
