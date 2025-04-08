@@ -9,13 +9,14 @@ try:
     import qcd_ml_accel_dirac.compat
 
     # try to call the dirac wilson to see if the c++ function was compiled
-    U = torch.zeros([4,2,2,2,2,3,3], dtype=torch.cdouble)
-    v = torch.zeros([2,2,2,2,4,3], dtype=torch.cdouble)
-    dw_avx = qcd_ml_accel_dirac.dirac_wilson_avx(U,-0.5)
-    dwv_avx = dw_avx(v)
+    U_try = torch.zeros([4,2,2,2,2,3,3], dtype=torch.cdouble)
+    v_try = torch.zeros([2,2,2,2,4,3], dtype=torch.cdouble)
+    dw_try = qcd_ml_accel_dirac.dirac_wilson_avx(U_try, -0.5)
+    dwv_try = dw_try(v_try)
 
     # random gauge field used in test
     lat_dim = [8,8,8,16]
+    print()
     rng = g.random("test06")
     U_g = g.qcd.gauge.random(g.grid(lat_dim, g.double), rng)
     grid = U_g[0].grid

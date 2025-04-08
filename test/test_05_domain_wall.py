@@ -9,7 +9,8 @@ try:
     import qcd_ml_accel_dirac.compat
 
     def test_domain_wall():
-        rng = g.random("test")
+        print()
+        rng = g.random("test05")
         U = g.qcd.gauge.random(g.grid([8, 8, 8, 16], g.double), rng)
         grid = U[0].grid
         m = 0.08

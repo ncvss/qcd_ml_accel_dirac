@@ -5,12 +5,12 @@ import socket
 import qcd_ml_accel_dirac
 
 
-def test_plaquette_action_bench():
+def test_torch_benchmark_plaquette_action():
 
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
     print("running on host", socket.gethostname())
-    print(f'Machine has {num_threads} threads')
+    print(f"Machine has {num_threads} threads")
 
     # not a valid gauge field, only for benchmark purposes
     U = torch.randn([4,8,8,8,16,3,3],dtype=torch.cdouble)
@@ -49,5 +49,5 @@ def test_plaquette_action_bench():
     plaq_py = qcd_ml_accel_dirac._plaq_action_py(U,g)
     plaq_cpp = torch.ops.qcd_ml_accel_dirac.plaquette_action(U,g)
 
-    assert abs(plaq_py-plaq_cpp) < 0.0001 * abs(plaq_py)
+    assert abs(plaq_py-plaq_cpp) < 0.000001 * abs(plaq_py)
     

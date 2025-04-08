@@ -1,4 +1,5 @@
 import torch
+import pytest
 
 import qcd_ml_accel_dirac
 

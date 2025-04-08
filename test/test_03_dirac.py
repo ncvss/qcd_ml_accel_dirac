@@ -116,7 +116,8 @@ else:
 
         lat_dim = [8,8,8,16]
 
-        rng = g.random("test01")
+        print()
+        rng = g.random("test03")
         U_g = g.qcd.gauge.random(g.grid(lat_dim, g.double), rng)
         grid = U_g[0].grid
         v_g = rng.cnormal(g.vspincolor(grid))

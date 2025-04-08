@@ -7,99 +7,18 @@ import time
 import qcd_ml_accel_dirac
 import qcd_ml
 
-def test_pytorch_timer_wilson():
-    num_threads = torch.get_num_threads()
-    print("\n=======Test output=======")
-    print("running on host", socket.gethostname())
-    print(f'Machine has {num_threads} threads')
-
-    sizes = [[4,4,4,8],[8,8,8,16]]
-
-    U = torch.randn([4]+sizes[1]+[3,3],dtype=torch.cdouble)
-    v = torch.randn(sizes[1]+[4,3],dtype=torch.cdouble)
-    mass = -0.5
-
-    for tn in range(1,num_threads+1):
-
-        t0 = benchmark.Timer(
-            stmt='dw(v)',
-            setup='from qcd_ml.qcd.dirac import dirac_wilson; dw = dirac_wilson(U,m)',
-            globals={'U': U, 'v': v, 'm': mass},
-            num_threads=tn
-        )
-
-        t1 = benchmark.Timer(
-            stmt='dw_cpp(v)',
-            setup='from qcd_ml_accel_dirac import dirac_wilson; dw_cpp = dirac_wilson(U,m)',
-            globals={'U': U, 'v': v, 'm': mass},
-            num_threads=tn
-        )
-
-        # note: only shown when enabling stdout in pytest via -s argument
-        print(t0.timeit(20+20*tn))
-        print(t1.timeit(100+100*tn))
-
-    print("=========================\n")
-
-    dw = qcd_ml.qcd.dirac.dirac_wilson(U,mass)
-    dw_cpp = qcd_ml_accel_dirac.dirac_wilson(U,mass)
-
-    assert torch.allclose(dw(v),dw_cpp(v))
-
-
-
-def test_pytorch_timer_wilson_clover():
-    num_threads = torch.get_num_threads()
-    print("\n=======Test output=======")
-    print("running on host", socket.gethostname())
-    print(f'Machine has {num_threads} threads')
-
-    sizes = [[4,4,4,8],[8,8,8,16]]
-
-    U = torch.randn([4]+sizes[1]+[3,3],dtype=torch.cdouble)
-    v = torch.randn(sizes[1]+[4,3],dtype=torch.cdouble)
-    mass = -0.5
-    csw = 1.0
-
-    for tn in range(1,num_threads+1):
-
-        t0 = benchmark.Timer(
-            stmt='dwc(v)',
-            setup='from qcd_ml.qcd.dirac import dirac_wilson_clover; dwc = dirac_wilson_clover(U,m,c)',
-            globals={'U': U, 'v': v, 'm': mass, 'c': csw},
-            num_threads=tn
-        )
-
-        t1 = benchmark.Timer(
-            stmt='dwc_cpp(v)',
-            setup='from qcd_ml_accel_dirac import dirac_wilson_clover; dwc_cpp = dirac_wilson_clover(U,m,c)',
-            globals={'U': U, 'v': v, 'm': mass, 'c': csw},
-            num_threads=tn
-        )
-
-        # note: only shown when enabling stdout in pytest via -s argument
-        print(t0.timeit(20+20*tn))
-        print(t1.timeit(100+100*tn))
-
-    print("=========================\n")
-
-    dwc = qcd_ml.qcd.dirac.dirac_wilson_clover(U,mass,csw)
-    dwc_cpp = qcd_ml_accel_dirac.dirac_wilson_clover(U,mass,csw)
-
-    assert torch.allclose(dwc(v),dwc_cpp(v))
-
 
 
 def test_perf_counter_wilson():
     print()
     num_threads = torch.get_num_threads()
     print("running on host", socket.gethostname())
-    print(f'Machine has {num_threads} threads')
+    print(f"Machine has {num_threads} threads")
 
-    n_measurements = 1000
-    n_warmup = 10
+    n_measurements = 500
+    n_warmup = 20
 
-    lat_dim = [8,8,8,16]
+    lat_dim = [16,16,16,32]
     print("lattice dimensions:",lat_dim)
 
     U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
@@ -142,8 +61,8 @@ def test_perf_counter_wilson():
     results_cpp_sorted = np.sort(results_cpp)[:(n_measurements // 5)]
 
 
-    for lang_name,results_sorted in [["python",results_py_sorted], ["c++",results_cpp_sorted]]:
-        print("-----")
+    for lang_name,results_sorted in [["qcd_ml",results_py_sorted], ["qcd_ml_accel_dirac",results_cpp_sorted]]:
+        print("-------")
         print(lang_name)
         print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
         print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")
@@ -173,12 +92,12 @@ def test_perf_counter_wilson_clover():
     print()
     num_threads = torch.get_num_threads()
     print("running on host", socket.gethostname())
-    print(f'Machine has {num_threads} threads')
+    print(f"Machine has {num_threads} threads")
     
-    n_measurements = 1000
-    n_warmup = 10
+    n_measurements = 500
+    n_warmup = 20
 
-    lat_dim = [8,8,8,16]
+    lat_dim = [16,16,16,32]
     print("lattice dimensions:",lat_dim)
 
     U = torch.randn([4]+lat_dim+[3,3],dtype=torch.cdouble)
@@ -224,8 +143,8 @@ def test_perf_counter_wilson_clover():
     results_cpp_sorted = np.sort(results_cpp)[:(n_measurements // 5)]
 
 
-    for lang_name,results_sorted in [["python",results_py_sorted], ["c++",results_cpp_sorted]]:
-        print("-----")
+    for lang_name,results_sorted in [["qcd_ml",results_py_sorted], ["qcd_ml_accel_dirac",results_cpp_sorted]]:
+        print("-------")
         print(lang_name)
         print(f"mean (top 20%): [us] {np.mean(results_sorted)/1000: .2f}")
         print(f"std (top 20%): [us] {np.std(results_sorted)/1000: .2f}")

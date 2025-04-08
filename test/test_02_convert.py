@@ -8,7 +8,8 @@ try:
     from qcd_ml_accel_dirac.compat import lattice_to_array, array_to_lattice, array_to_lattice_list
 
     def test_conversion_gpt_torch_gpt():
-        rng = g.random("convert")
+        print()
+        rng = g.random("test02")
         U = g.qcd.gauge.random(g.grid([8,8,8,16], g.double), rng)
         grid = U[0].grid
         v = rng.cnormal(g.vspincolor(grid))
