@@ -2,43 +2,45 @@ import torch
 
 
 def _dw_avx_backward(ctx, grad):
-    U, v, h, mass = ctx.saved_tensors
+    U, v, h, bounds, mass = ctx.saved_tensors
     grad_v = None
     # currently, we only implement the v gradient
     if ctx.needs_input_grad[1]:
-        grad_v = torch.ops.qcd_ml_accel_dirac.dw_avx_templ_backw(U, grad, h, mass.item())
+        grad_v = torch.ops.qcd_ml_accel_dirac.dw_avx_templ_backw(U, grad, h, bounds, mass.item())
     return None, grad_v, None, None, None
 
 def _dw_avx_setup_context(ctx, inputs, output):
-    U, v, hops, mass = inputs
-    saved_U, saved_v, saved_hops, saved_mass = None, None, None, None
+    U, v, hops, bounds, mass = inputs
+    saved_U, saved_v, saved_hops, saved_bounds, saved_mass = None, None, None, None, None
     # currently, we only implement the v gradient
     if ctx.needs_input_grad[1]:
         saved_U = U
         saved_mass = torch.tensor([mass]) # apparently this can only save tensors
         saved_hops = hops
-    ctx.save_for_backward(saved_U, saved_v, saved_hops, saved_mass)
+        saved_bounds = bounds
+    ctx.save_for_backward(saved_U, saved_v, saved_hops, saved_bounds, saved_mass)
 
 
 
 def _dwc_avx_grid_backward(ctx, grad):
-    U, v, fs, h, mass = ctx.saved_tensors
+    U, v, fs, h, bounds, mass = ctx.saved_tensors
     grad_v = None
     # currently, we only implement the v gradient
     if ctx.needs_input_grad[1]:
-        grad_v = torch.ops.qcd_ml_accel_dirac.dwc_avx_templ_grid_backw(U, grad, fs, h, mass.item())
-    return None, grad_v, None, None, None
+        grad_v = torch.ops.qcd_ml_accel_dirac.dwc_avx_templ_grid_backw(U, grad, fs, h, bounds, mass.item())
+    return None, grad_v, None, None, None, None
 
 def _dwc_avx_grid_setup_context(ctx, inputs, output):
-    U, v, fs, hops, mass = inputs
-    saved_U, saved_v, saved_fs, saved_hops, saved_mass = None, None, None, None, None
+    U, v, fs, hops, bounds, mass = inputs
+    saved_U, saved_v, saved_fs, saved_hops, saved_bounds, saved_mass = None, None, None, None, None, None
     # currently, we only implement the v gradient
     if ctx.needs_input_grad[1]:
         saved_U = U
         saved_fs = fs
         saved_mass = torch.tensor([mass]) # apparently this can only save tensors
         saved_hops = hops
-    ctx.save_for_backward(saved_U, saved_v, saved_fs, saved_hops, saved_mass)
+        saved_bounds = bounds
+    ctx.save_for_backward(saved_U, saved_v, saved_fs, saved_hops, saved_bounds, saved_mass)
 
 
 # This adds training support for the operator. You must provide us

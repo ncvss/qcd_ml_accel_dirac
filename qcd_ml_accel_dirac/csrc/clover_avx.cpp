@@ -1,5 +1,5 @@
 #include <torch/extension.h>
-#define CPU_IS_AVX_CAPABLE
+
 // will only be compiled if AVX capabilities were detected
 #ifdef CPU_IS_AVX_CAPABLE
 #include <omp.h>

@@ -81,10 +81,12 @@ class dirac_wilson:
 
 class dirac_wilson_avx:
     """
-    Dirac Wilson operator that creates a lookup table for the hops and uses AVX instructions.
+    Wilson Dirac operator with gauge config U
+    that creates a lookup table for the hops and uses AVX instructions.
+
     The axes are U[mu,x,y,z,t,g,gi] and v[x,y,z,t,s,g].
     """
-    def __init__(self, U: torch.Tensor, mass_parameter: float):
+    def __init__(self, U: torch.Tensor, mass_parameter: float, boundary_phases: list=[1,1,1,1]):
 
         assert tuple(U.shape[5:7]) == (3,3,)
         assert U.shape[0] == 4
@@ -118,11 +120,25 @@ class dirac_wilson_avx:
         self.hop_inds = torch.stack(hop_inds, dim=1).contiguous()
         """
         For each lattice site, hop_inds contains the address of all shifts from that lattice site
-        forward and backward in all coordinate directions.
+        backward and forward in all coordinate directions.
+        """
+
+        hop_phases = torch.ones(list(grid)+[8], dtype=torch.int8)
+        # for the sites at the lower boundary [0], a hop in negative direction has the phase
+        # for the sites at the upper boundary [-1], a hop in positive direction has the phase
+        for edge in range(2):
+            hop_phases[-edge,:,:,:,0+edge] = boundary_phases[0]
+            hop_phases[:,-edge,:,:,2+edge] = boundary_phases[1]
+            hop_phases[:,:,-edge,:,4+edge] = boundary_phases[2]
+            hop_phases[:,:,:,-edge,6+edge] = boundary_phases[3]
+        self.hop_phases = hop_phases
+        """
+        For each lattice site, hop_phases contains the phase factor for all shifts from that lattice site
+        backward and forward in all coordinate directions.
         """
 
     def __call__(self, v):
-        return torch.ops.qcd_ml_accel_dirac.dw_avx_templ(self.U, v, self.hop_inds,
+        return torch.ops.qcd_ml_accel_dirac.dw_avx_templ(self.U, v, self.hop_inds, self.hop_phases,
                                                          self.mass_parameter)
     
 
@@ -192,8 +208,11 @@ class dirac_wilson_clover:
 
 class dirac_wilson_clover_avx_old:
     """
-    Dirac Wilson Clover operator that creates a lookup table for the hops and uses AVX instructions.
+    Wilson clover Dirac operator with gauge config U
+    that creates a lookup table for the hops and uses AVX instructions.
+
     The axes are U[mu,x,y,z,t,g,gi], v[x,y,z,t,s,gi] and F[x,y,z,t,munu,g,gi].
+
     The field strength tensor is precomputed naively.
     """
     def __init__(self, U: torch.Tensor, mass_parameter: float, csw: float):
@@ -282,13 +301,14 @@ class dirac_wilson_clover_avx_old:
 
 class dirac_wilson_clover_avx:
     """
-    Dirac Wilson Clover operator with gauge config U
+    Wilson clover Dirac operator with gauge config U
     that creates a lookup table for the hops and uses AVX instructions.
+
     field_strength * sigma * v is precomputed by computing the tensor product
     of field_strength * sigma, and only the upper triangle of two 6x6 blocks
     is passed for the field strength.
     """
-    def __init__(self, U: torch.Tensor, mass_parameter: float, csw: float):
+    def __init__(self, U: torch.Tensor, mass_parameter: float, csw: float, boundary_phases: list=[1,1,1,1]):
         
         assert tuple(U.shape[5:7]) == (3,3,)
         assert U.shape[0] == 4
@@ -326,6 +346,20 @@ class dirac_wilson_clover_avx:
         """
         For each lattice site, hop_inds contains the address of all shifts from that lattice site
         forward and backward in all coordinate directions.
+        """
+
+        hop_phases = torch.ones(list(grid)+[8], dtype=torch.int8)
+        # for the sites at the lower boundary [0], a hop in negative direction has the phase
+        # for the sites at the upper boundary [-1], a hop in positive direction has the phase
+        for edge in range(2):
+            hop_phases[-edge,:,:,:,0+edge] = boundary_phases[0]
+            hop_phases[:,-edge,:,:,2+edge] = boundary_phases[1]
+            hop_phases[:,:,-edge,:,4+edge] = boundary_phases[2]
+            hop_phases[:,:,:,-edge,6+edge] = boundary_phases[3]
+        self.hop_phases = hop_phases
+        """
+        For each lattice site, hop_phases contains the phase factor for all shifts from that lattice site
+        backward and forward in all coordinate directions.
         """
         
         Hp = lambda mu, lst: lst + [(mu, 1)]
@@ -385,7 +419,7 @@ class dirac_wilson_clover_avx:
 
     def __call__ (self, v):
         return torch.ops.qcd_ml_accel_dirac.dwc_avx_templ_grid(self.U, v, self.field_strength_sigma,
-                                                               self.hop_inds, self.mass_parameter)
+                                                               self.hop_inds, self.hop_phases, self.mass_parameter)
 
 
 

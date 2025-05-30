@@ -7,7 +7,7 @@
 // except that the gamma U terms have the inverse sign
 
 #include <torch/extension.h>
-#define CPU_IS_AVX_CAPABLE
+
 // will only be compiled if AVX capabilities were detected
 #ifdef CPU_IS_AVX_CAPABLE
 
@@ -30,11 +30,16 @@ namespace qcd_ml_accel_dirac {
 // t is a function parameter, as it varies at compile time, also the loop does not change with t
 template <int mu, int g, int s>
 void dwc_avx_grid_backw_mgs_loop (const double * U, const double * v,
-                                 const int * hops, __m256d massf_reg,
+                                 const int * hops, const int8_t * bound, __m256d massf_reg,
                                  double * result, int t, int vol){
 
     // register for the -1/2 prefactor
     __m256d m0p5_reg = _mm256_set1_pd(-0.5);
+
+    // register for negative shift phase
+    __m256d mphase_reg = _mm256_set1_pd(double(bound[hixd(t,mu,0)]));
+    // register for positive shift phase
+    __m256d pphase_reg = _mm256_set1_pd(double(bound[hixd(t,mu,1)]));
 
     // register with the change in result[t,s,g]
     __m256d incr;
@@ -70,6 +75,9 @@ void dwc_avx_grid_backw_mgs_loop (const double * U, const double * v,
         // subtract those 2 (only difference to normal)
         v_Hmum = _mm256_sub_pd(v_Hmum, v_Hmum_gam);
 
+        // multiply with the phase for a negative shift
+        v_Hmum = _mm256_mul_pd(v_Hmum, mphase_reg);
+
         // take Umu hop in negative mu, adjoint it, and multiply onto v sum
         v_Hmum = compl_scalarmem_conj_vectorreg_mul(U+uixo(hops[hixd(t,mu,0)],mu,gi,g,vol),v_Hmum);
 
@@ -90,6 +98,9 @@ void dwc_avx_grid_backw_mgs_loop (const double * U, const double * v,
 
         // add those 2
         v_Hmup = _mm256_add_pd(v_Hmup, v_Hmup_gam);
+
+        // multiply with the phase for a positive shift
+        v_Hmup = _mm256_mul_pd(v_Hmup, pphase_reg);
 
         // multiply U at this point onto v sum
         v_Hmup = compl_scalarmem_vectorreg_mul(U+uixo(t,mu,g,gi,vol),v_Hmup);
@@ -200,7 +211,7 @@ void dwc_avx_grid_backw_clover (const double * v, const double * F,
 
 at::Tensor dwc_avx_templ_grid_backw (const at::Tensor& U_tensor, const at::Tensor& grad_tensor,
                                      const at::Tensor& fs_tensors, const at::Tensor& hops_tensor,
-                                     double mass){
+                                     const at::Tensor& bound_tensor, double mass){
 
     // memory layout has to be U[mu,x,y,z,t,g,gi] and v[x,y,z,t,s,gi]
 
@@ -230,6 +241,7 @@ at::Tensor dwc_avx_templ_grid_backw (const at::Tensor& U_tensor, const at::Tenso
     const double* v = (double*)grad_tensor.const_data_ptr<c10::complex<double>>();
     const double* F = (double*)fs_tensors.const_data_ptr<c10::complex<double>>();
     const int* hops = hops_tensor.const_data_ptr<int>();
+    const int8_t* bound = bound_tensor.const_data_ptr<int8_t>();
     double* result = (double*)result_tensor.mutable_data_ptr<c10::complex<double>>();
 
     // register for the mass prefactor
@@ -242,44 +254,41 @@ at::Tensor dwc_avx_templ_grid_backw (const at::Tensor& U_tensor, const at::Tenso
         // loop over mu=0,1,2,3 g=0,1,2 and s=0,2 manually with template
         // the spin is vectorized, s=0,1 and s=2,3 are computed at the same time
 
-        dwc_avx_grid_backw_mgs_loop<0,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<0,0,2>(U,v,hops,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<0,0,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<0,1,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<0,2,0>(U,v,hops,bound,massf_reg,result,t,vol);
 
-        dwc_avx_grid_backw_mgs_loop<0,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<0,1,2>(U,v,hops,massf_reg,result,t,vol);
-
-        dwc_avx_grid_backw_mgs_loop<0,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<0,2,2>(U,v,hops,massf_reg,result,t,vol);
-
-
-        dwc_avx_grid_backw_mgs_loop<1,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<1,0,2>(U,v,hops,massf_reg,result,t,vol);
-
-        dwc_avx_grid_backw_mgs_loop<1,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<1,1,2>(U,v,hops,massf_reg,result,t,vol);
-
-        dwc_avx_grid_backw_mgs_loop<1,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<1,2,2>(U,v,hops,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<0,0,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<0,1,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<0,2,2>(U,v,hops,bound,massf_reg,result,t,vol);
 
 
-        dwc_avx_grid_backw_mgs_loop<2,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<2,0,2>(U,v,hops,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<1,0,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<1,1,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<1,2,0>(U,v,hops,bound,massf_reg,result,t,vol);
 
-        dwc_avx_grid_backw_mgs_loop<2,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<2,1,2>(U,v,hops,massf_reg,result,t,vol);
-
-        dwc_avx_grid_backw_mgs_loop<2,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<2,2,2>(U,v,hops,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<1,0,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<1,1,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<1,2,2>(U,v,hops,bound,massf_reg,result,t,vol);
 
 
-        dwc_avx_grid_backw_mgs_loop<3,0,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<3,0,2>(U,v,hops,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<2,0,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<2,1,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<2,2,0>(U,v,hops,bound,massf_reg,result,t,vol);
 
-        dwc_avx_grid_backw_mgs_loop<3,1,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<3,1,2>(U,v,hops,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<2,0,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<2,1,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<2,2,2>(U,v,hops,bound,massf_reg,result,t,vol);
 
-        dwc_avx_grid_backw_mgs_loop<3,2,0>(U,v,hops,massf_reg,result,t,vol);
-        dwc_avx_grid_backw_mgs_loop<3,2,2>(U,v,hops,massf_reg,result,t,vol);
+
+        dwc_avx_grid_backw_mgs_loop<3,0,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<3,1,0>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<3,2,0>(U,v,hops,bound,massf_reg,result,t,vol);
+
+        dwc_avx_grid_backw_mgs_loop<3,0,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<3,1,2>(U,v,hops,bound,massf_reg,result,t,vol);
+        dwc_avx_grid_backw_mgs_loop<3,2,2>(U,v,hops,bound,massf_reg,result,t,vol);
+
 
         dwc_avx_grid_backw_clover(v,F,result,t);
     }
@@ -295,7 +304,7 @@ namespace qcd_ml_accel_dirac{
 
 at::Tensor dwc_avx_templ_grid_backw (const at::Tensor& U_tensor, const at::Tensor& grad_tensor,
                                      const at::Tensor& fs_tensors, const at::Tensor& hops_tensor,
-                                     double mass){
+                                     const at::Tensor& bound_tensor, double mass){
     
     TORCH_CHECK(false, "No AVX capabilities detected, AVX function not callable.");
     return grad_tensor;
