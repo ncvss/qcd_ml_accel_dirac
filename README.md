@@ -43,6 +43,12 @@ qcd_ml is required to test against it.
 
 The tests can be run with pytest.
 ````
-pytest -v -s test/
+pytest -v test/
 ````
-The benchmark tests create custom output, so the `-s` option is required for them.
+
+The benchmark tests are skipped by default. To run them, one needs the options `--runbenchmark`
+and `-s` to display custom output.
+````
+pytest -v -s --runbenchmark test/
+````
+

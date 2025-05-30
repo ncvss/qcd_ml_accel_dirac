@@ -3,12 +3,13 @@ import torch.utils.benchmark as benchmark
 import socket
 import numpy as np
 import time
+import pytest
 
 import qcd_ml_accel_dirac
 import qcd_ml
 
 
-
+@pytest.mark.benchmark
 def test_perf_counter_wilson():
     print()
     num_threads = torch.get_num_threads()
@@ -87,7 +88,7 @@ def test_perf_counter_wilson():
 
     assert torch.allclose(dwv_cpp,dwv_py)
 
-
+@pytest.mark.benchmark
 def test_perf_counter_wilson_clover():
     print()
     num_threads = torch.get_num_threads()

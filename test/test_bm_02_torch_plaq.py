@@ -1,10 +1,11 @@
 import torch
 import torch.utils.benchmark as benchmark
 import socket
+import pytest
 
 import qcd_ml_accel_dirac
 
-
+@pytest.mark.benchmark
 def test_torch_benchmark_plaquette_action():
 
     num_threads = torch.get_num_threads()

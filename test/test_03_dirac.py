@@ -51,124 +51,127 @@ def test_dirac_wilson_clover_random():
 
     assert torch.allclose(dwc_cpp(v),dwc_py(v))
 
+
+# try availability of GPT and AVX to see if the tests can be run
+
 try:
     # try to call the dirac wilson to see if the c++ function was compiled
     U = torch.zeros([4,2,2,2,2,3,3], dtype=torch.cdouble)
     v = torch.zeros([2,2,2,2,4,3], dtype=torch.cdouble)
     dw_avx = qcd_ml_accel_dirac.dirac_wilson_avx(U,-0.5)
     dwv_avx = dw_avx(v)
-
 except RuntimeError:
-
-    @pytest.mark.skip("missing AVX")
-    def test_dirac_wilson_avx_precomputed():
-        pass
-
-    @pytest.mark.skip("missing AVX")
-    def test_dirac_wilson_clover_avx_old_precomputed():
-        pass
-
-    @pytest.mark.skip("missing AVX")
-    def test_dirac_wilson_clover_avx_precomputed():
-        pass
-
-    @pytest.mark.skip("missing AVX")
-    def test_dirac_wilson_avx_random():
-        pass
-
-    @pytest.mark.skip("missing AVX")
-    def test_dirac_wilson_clover_avx_old_random():
-        pass
-
-    @pytest.mark.skip("missing AVX")
-    def test_dirac_wilson_clover_avx_random():
-        pass
-
+    avx_missing = True
 else:
-
-    def test_dirac_wilson_avx_precomputed(config_1500, psi_test, psi_Dw1500_m0p5_psitest):
-        w = qcd_ml_accel_dirac.dirac_wilson_avx(config_1500, -0.5)
-
-        expect = psi_Dw1500_m0p5_psitest
-        got = w(psi_test)
-        assert torch.allclose(expect, got)
+    avx_missing = False
 
 
-    def test_dirac_wilson_clover_avx_old_precomputed(config_1500, psi_test, psi_Dwc1500_m0p5_psitest):
-        w = qcd_ml_accel_dirac.dirac_wilson_clover_avx_old(config_1500, -0.5, 1)
+try:
+    import gpt as g
+    import qcd_ml_accel_dirac.compat
+except ImportError:
+    gpt_missing = True
+else:
+    gpt_missing = False
 
-        expect = psi_Dwc1500_m0p5_psitest
-        got = w(psi_test)
-        assert torch.allclose(expect, got)
+    lat_dim = [8,8,8,16]
+    print()
+    rng = g.random("test03")
+    U_g = g.qcd.gauge.random(g.grid(lat_dim, g.double), rng)
+    grid = U_g[0].grid
+    v_g = rng.cnormal(g.vspincolor(grid))
+    U_rand = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(U_g))
+    v_rand = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(v_g))
+    mass = -0.5
+    csw = 1.0
+    kappa = 1.0/2.0/(mass + 4.0)
 
-
-    def test_dirac_wilson_clover_avx_precomputed(config_1500, psi_test, psi_Dwc1500_m0p5_psitest):
-        w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(config_1500, -0.5, 1)
-
-        expect = psi_Dwc1500_m0p5_psitest
-        got = w(psi_test)
-        assert torch.allclose(expect, got)
-
-
-    try:
-        import gpt as g
-        import qcd_ml_accel_dirac.compat
-
-        lat_dim = [8,8,8,16]
-
-        print()
-        rng = g.random("test03")
-        U_g = g.qcd.gauge.random(g.grid(lat_dim, g.double), rng)
-        grid = U_g[0].grid
-        v_g = rng.cnormal(g.vspincolor(grid))
-
-        U_rand = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(U_g))
-        v_rand = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(v_g))
-
-        mass = -0.5
-        csw = 1.0
+gpt_or_avx_reason = "missing AVX" if avx_missing else "missing GPT"
 
 
-        def test_dirac_wilson_avx_random():
-            w = qcd_ml_accel_dirac.dirac_wilson_avx(U_rand, mass)
-            wref = qcd_ml.qcd.dirac.dirac_wilson(U_rand, mass)
 
-            expect = wref(v_rand)
-            got = w(v_rand)
+@pytest.mark.skipif(avx_missing, reason="missing AVX")
+def test_dirac_wilson_avx_precomputed(config_1500, psi_test, psi_Dw1500_m0p5_psitest):
+    w = qcd_ml_accel_dirac.dirac_wilson_avx(config_1500, -0.5)
 
-            assert torch.allclose(expect, got)
-
-
-        def test_dirac_wilson_clover_avx_old_random():
-            w = qcd_ml_accel_dirac.dirac_wilson_clover_avx_old(U_rand, mass, csw)
-            wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U_rand, mass, csw)
-
-            expect = wref(v_rand)
-            got = w(v_rand)
-            assert torch.allclose(expect, got)
+    expect = psi_Dw1500_m0p5_psitest
+    got = w(psi_test)
+    assert torch.allclose(expect, got)
 
 
-        def test_dirac_wilson_clover_avx_random():
-            w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U_rand, mass, csw)
-            wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U_rand, mass, csw)
+@pytest.mark.skipif(avx_missing, reason="missing AVX")
+def test_dirac_wilson_clover_avx_old_precomputed(config_1500, psi_test, psi_Dwc1500_m0p5_psitest):
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx_old(config_1500, -0.5, 1)
 
-            expect = wref(v_rand)
-            got = w(v_rand)
-            assert torch.allclose(expect, got)
-    
+    expect = psi_Dwc1500_m0p5_psitest
+    got = w(psi_test)
+    assert torch.allclose(expect, got)
 
-    except ImportError:
 
-        @pytest.mark.skip("missing GPT")
-        def test_dirac_wilson_avx_random():
-            pass
+@pytest.mark.skipif(avx_missing, reason="missing AVX")
+def test_dirac_wilson_clover_avx_precomputed(config_1500, psi_test, psi_Dwc1500_m0p5_psitest):
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(config_1500, -0.5, 1)
 
-        @pytest.mark.skip("missing GPT")
-        def test_dirac_wilson_clover_avx_old_random():
-            pass
+    expect = psi_Dwc1500_m0p5_psitest
+    got = w(psi_test)
+    assert torch.allclose(expect, got)
 
-        @pytest.mark.skip("missing GPT")
-        def test_dirac_wilson_clover_avx_random():
-            pass
 
-    
+@pytest.mark.skipif(gpt_missing or avx_missing, reason=gpt_or_avx_reason)
+def test_dirac_wilson_avx_random():
+    w = qcd_ml_accel_dirac.dirac_wilson_avx(U_rand, mass)
+    wref = qcd_ml.qcd.dirac.dirac_wilson(U_rand, mass)
+
+    expect = wref(v_rand)
+    got = w(v_rand)
+
+    assert torch.allclose(expect, got)
+        
+
+@pytest.mark.skipif(gpt_missing or avx_missing, reason=gpt_or_avx_reason)
+def test_dirac_wilson_avx_random_boundary():
+    boundcond = [1,1,1,-1]
+    w = qcd_ml_accel_dirac.dirac_wilson_avx(U_rand, mass, boundcond)
+    wref = g.qcd.fermion.wilson_clover(U_g, {"kappa":kappa,"csw_r":0.0,"csw_t":0.0,"xi_0":1,"nu":1,
+                                        "isAnisotropic":False,"boundary_phases":boundcond,}, )
+
+    expect = wref(v_g)
+    expect_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(expect))
+    got = w(v_rand)
+
+    assert torch.allclose(expect_torch, got)
+
+
+@pytest.mark.skipif(gpt_missing or avx_missing, reason=gpt_or_avx_reason)
+def test_dirac_wilson_clover_avx_old_random():
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx_old(U_rand, mass, csw)
+    wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U_rand, mass, csw)
+
+    expect = wref(v_rand)
+    got = w(v_rand)
+    assert torch.allclose(expect, got)
+
+
+@pytest.mark.skipif(gpt_missing or avx_missing, reason=gpt_or_avx_reason)
+def test_dirac_wilson_clover_avx_random():
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U_rand, mass, csw)
+    wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U_rand, mass, csw)
+
+    expect = wref(v_rand)
+    got = w(v_rand)
+    assert torch.allclose(expect, got)
+
+
+@pytest.mark.skipif(gpt_missing or avx_missing, reason=gpt_or_avx_reason)
+def test_dirac_wilson_clover_avx_random_boundary():
+    boundcond = [1,1,1,-1]
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U_rand, mass, csw, boundcond)
+    wref = g.qcd.fermion.wilson_clover(U_g, {"kappa":kappa,"csw_r":csw,"csw_t":csw,"xi_0":1,"nu":1,
+                                        "isAnisotropic":False,"boundary_phases":boundcond,}, )
+
+    expect = wref(v_g)
+    expect_torch = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(expect))
+    got = w(v_rand)
+
+    assert torch.allclose(expect_torch, got)
+

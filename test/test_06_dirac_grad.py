@@ -23,57 +23,88 @@ try:
     U = torch.tensor(qcd_ml_accel_dirac.compat.lattice_to_array(U_g))
     mass = -0.5
     csw = 1.0
-
-    def test_wilson_avx_gradient_random():
-        vref = torch.randn(lat_dim+[4,3], dtype=torch.cdouble, requires_grad=True)
-        v = vref.clone().detach().requires_grad_(True)
-
-        wref = qcd_ml.qcd.dirac.dirac_wilson(U, mass)
-        resref = wref(vref)
-        lossref = (resref * resref.conj()).real.sum()
-        lossref.backward()
-
-        w = qcd_ml_accel_dirac.dirac_wilson_avx(U, mass)
-        res = w(v)
-        loss = (res * res.conj()).real.sum()
-        loss.backward()
-
-        assert(torch.allclose(v.grad, vref.grad))
-
-
-    def test_wilson_clover_avx_gradient_random():
-        vref = torch.randn(lat_dim+[4,3], dtype=torch.cdouble, requires_grad=True)
-        v = vref.clone().detach().requires_grad_(True)
-
-        wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U, mass, csw)
-        resref = wref(vref)
-        lossref = (resref * resref.conj()).real.sum()
-        lossref.backward()
-
-        w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U, mass, csw)
-        res = w(v)
-        loss = (res * res.conj()).real.sum()
-        loss.backward()
-
-        assert(torch.allclose(v.grad, vref.grad))
-
-
 except ImportError:
-
-    @pytest.mark.skip("missing gpt")
-    def test_wilson_avx_gradient_random():
-        pass
-
-    @pytest.mark.skip("missing gpt")
-    def test_wilson_clover_avx_gradient_random():
-        pass
-
+    skiptests = True
+    skipreason = "missing GPT"
 except RuntimeError:
+    skiptests = True
+    skipreason = "missing AVX"
+else:
+    skiptests = False
+    skipreason = ""
 
-    @pytest.mark.skip("missing AVX")
-    def test_wilson_avx_gradient_random():
-        pass
+@pytest.mark.skipif(skiptests, reason=skipreason)
+def test_wilson_avx_gradient_random():
+    vref = torch.randn(lat_dim+[4,3], dtype=torch.cdouble, requires_grad=True)
+    v = vref.clone().detach().requires_grad_(True)
 
-    @pytest.mark.skip("missing AVX")
-    def test_wilson_clover_avx_gradient_random():
-        pass
+    wref = qcd_ml.qcd.dirac.dirac_wilson(U, mass)
+    resref = wref(vref)
+    lossref = (resref * resref.conj()).real.sum()
+    lossref.backward()
+
+    w = qcd_ml_accel_dirac.dirac_wilson_avx(U, mass)
+    res = w(v)
+    loss = (res * res.conj()).real.sum()
+    loss.backward()
+
+    assert(torch.allclose(v.grad, vref.grad))
+
+
+@pytest.mark.skipif(skiptests, reason=skipreason)
+def test_wilson_avx_gradient_boundary_random():
+    vref = torch.randn(lat_dim+[4,3], dtype=torch.cdouble, requires_grad=True)
+    v = vref.clone().detach().requires_grad_(True)
+
+    boundcond = [1,1,1,-1]
+
+    wref = qcd_ml.qcd.dirac.dirac_wilson(U, mass, boundcond)
+    resref = wref(vref)
+    lossref = (resref * resref.conj()).real.sum()
+    lossref.backward()
+
+    w = qcd_ml_accel_dirac.dirac_wilson_avx(U, mass, boundcond)
+    res = w(v)
+    loss = (res * res.conj()).real.sum()
+    loss.backward()
+
+    assert(torch.allclose(v.grad, vref.grad))
+
+
+@pytest.mark.skipif(skiptests, reason=skipreason)
+def test_wilson_clover_avx_gradient_random():
+    vref = torch.randn(lat_dim+[4,3], dtype=torch.cdouble, requires_grad=True)
+    v = vref.clone().detach().requires_grad_(True)
+
+    wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U, mass, csw)
+    resref = wref(vref)
+    lossref = (resref * resref.conj()).real.sum()
+    lossref.backward()
+
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U, mass, csw)
+    res = w(v)
+    loss = (res * res.conj()).real.sum()
+    loss.backward()
+
+    assert(torch.allclose(v.grad, vref.grad))
+
+
+@pytest.mark.skipif(skiptests, reason=skipreason)
+def test_wilson_clover_avx_gradient_boundary_random():
+    vref = torch.randn(lat_dim+[4,3], dtype=torch.cdouble, requires_grad=True)
+    v = vref.clone().detach().requires_grad_(True)
+
+    boundcond = [1,1,1,-1]
+
+    wref = qcd_ml.qcd.dirac.dirac_wilson_clover(U, mass, csw, boundcond)
+    resref = wref(vref)
+    lossref = (resref * resref.conj()).real.sum()
+    lossref.backward()
+
+    w = qcd_ml_accel_dirac.dirac_wilson_clover_avx(U, mass, csw, boundcond)
+    res = w(v)
+    loss = (res * res.conj()).real.sum()
+    loss.backward()
+
+    assert(torch.allclose(v.grad, vref.grad))
+

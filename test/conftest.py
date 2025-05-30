@@ -5,6 +5,25 @@ import numpy as np
 import os
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--runbenchmark", action="store_true", default=False, help="run benchmark tests"
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "benchmark: mark test as benchmark tests")
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--runbenchmark"):
+        # --runbenchmark given in cli: do not skip benchmark tests
+        return
+    skip_bench = pytest.mark.skip(reason="need --runbenchmark option to run")
+    for item in items:
+        if "benchmark" in item.keywords:
+            item.add_marker(skip_bench)
+
 
 @pytest.fixture 
 def config_1500():

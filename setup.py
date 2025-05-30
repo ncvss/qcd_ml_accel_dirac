@@ -57,7 +57,7 @@ def get_extensions():
 
 setup(
     name=library_name,
-    version="0.0.7",
+    version="0.0.8",
     packages=find_packages(),
     #packages=["qcd_ml_accel_dirac"],
     #package_dir={"qcd_ml_accel_dirac": "qcd_ml_accel_dirac/"},

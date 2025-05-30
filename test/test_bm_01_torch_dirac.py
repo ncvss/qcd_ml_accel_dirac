@@ -3,12 +3,13 @@ import torch.utils.benchmark as benchmark
 import socket
 import numpy as np
 import time
+import pytest
 
 import qcd_ml_accel_dirac
 import qcd_ml
 
 
-
+@pytest.mark.benchmark
 def test_torch_benchmark_wilson_vary_threads():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
@@ -50,7 +51,7 @@ def test_torch_benchmark_wilson_vary_threads():
     assert torch.allclose(dw(v),dw_cpp(v))
 
 
-
+@pytest.mark.benchmark
 def test_torch_benchmark_wilson_clover_vary_threads():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
@@ -94,7 +95,7 @@ def test_torch_benchmark_wilson_clover_vary_threads():
     assert torch.allclose(dwc(v),dwc_cpp(v))
 
 
-
+@pytest.mark.benchmark
 def test_torch_benchmark_wilson_vary_sizes():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")
@@ -146,7 +147,7 @@ def test_torch_benchmark_wilson_vary_sizes():
     assert all(assert_equal)
 
 
-
+@pytest.mark.benchmark
 def test_torch_benchmark_wilson_clover_vary_sizes():
     num_threads = torch.get_num_threads()
     print("\n=======Test output=======")

@@ -18,6 +18,7 @@ try:
     dw_try = qcd_ml_accel_dirac.dirac_wilson_avx(U_try, -0.5)
     dwv_try = dw_try(v_try)
 
+    @pytest.mark.benchmark
     def test_benchmark_wilson_avx():
         print()
         num_threads = torch.get_num_threads()
@@ -114,7 +115,7 @@ try:
                     torch.allclose(dwv_avx,dwv_py)])
     
 
-
+    @pytest.mark.benchmark
     def test_benchmark_wilson_clover_avx():
         print()
         num_threads = torch.get_num_threads()

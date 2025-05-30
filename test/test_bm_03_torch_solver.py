@@ -1,11 +1,12 @@
 import torch
 import torch.utils.benchmark as benchmark
 import socket
+import pytest
 
 import qcd_ml_accel_dirac
 import qcd_ml
 
-
+@pytest.mark.benchmark
 def test_torch_benchmark_gmres_python_vs_cpp_wilson():
     num_threads = torch.get_num_threads()
     print("running on host", socket.gethostname())
